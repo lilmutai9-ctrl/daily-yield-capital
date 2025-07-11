@@ -46,11 +46,11 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Home</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Investment Plans</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Calculator</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">FAQ</a></li>
+              <li><a href="/" className="hover:text-foreground transition-colors">Home</a></li>
+              <li><a href="#about" className="hover:text-foreground transition-colors">About Us</a></li>
+              <li><a href="#investment-tiers" className="hover:text-foreground transition-colors">Investment Plans</a></li>
+              <li><a href="#calculator" className="hover:text-foreground transition-colors">Calculator</a></li>
+              <li><a href="#faq" className="hover:text-foreground transition-colors">FAQ</a></li>
             </ul>
           </div>
 
@@ -58,11 +58,11 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Live Chat</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Support Tickets</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">API Documentation</a></li>
+              <li><a href="/support" className="hover:text-foreground transition-colors">Help Center</a></li>
+              <li><a href="/support" className="hover:text-foreground transition-colors">Contact Us</a></li>
+              <li><a href="/support" className="hover:text-foreground transition-colors">Live Chat</a></li>
+              <li><a href="/support" className="hover:text-foreground transition-colors">Support Tickets</a></li>
+              <li><a href="/support" className="hover:text-foreground transition-colors">API Documentation</a></li>
             </ul>
           </div>
 
@@ -70,11 +70,11 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Legal</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Terms & Conditions</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Refund Policy</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Risk Disclosure</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Regulatory</a></li>
+              <li><a href="/legal" className="hover:text-foreground transition-colors">Terms & Conditions</a></li>
+              <li><a href="/legal" className="hover:text-foreground transition-colors">Privacy Policy</a></li>
+              <li><a href="/legal" className="hover:text-foreground transition-colors">Refund Policy</a></li>
+              <li><a href="/legal" className="hover:text-foreground transition-colors">Risk Disclosure</a></li>
+              <li><a href="/legal" className="hover:text-foreground transition-colors">Regulatory</a></li>
             </ul>
           </div>
         </div>

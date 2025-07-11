@@ -2,16 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp } from 'lucide-react';
 
 const messages = [
-  "💸 James N. earned $52.00 today",
-  "🚀 Grace T. just withdrew $540.00",
-  "📈 Linda O. earned $148.50 from her $100 investment",
-  "💰 Michael R. made $85.75 in daily returns",
-  "🎯 Sarah K. reached $1,250 from $800 investment",
-  "⚡ David L. withdrew $320.00 instantly",
-  "🔥 Emma P. earned $67.30 today",
-  "💎 Robert M. hit Diamond tier with $1,500",
-  "🌟 Jessica W. made $45.20 profit",
-  "🚀 Alex C. just earned $95.80 from Forex"
+  "💸 James Alexander earned $2,540.00 today from his Forex investments",
+  "🚀 Grace Thompson just withdrew $15,400.00 in under 2 minutes",
+  "📈 Linda Rodriguez earned $7,850.50 from her $2,500 investment in 30 days",
+  "💰 Michael Richardson made $3,275.75 in daily returns this week",
+  "🎯 Sarah Katherine reached $25,750 from $8,000 investment in just 45 days",
+  "⚡ David Lancaster withdrew $12,320.00 instantly to his Bitcoin wallet",
+  "🔥 Emma Patterson earned $4,567.30 today from crypto arbitrage",
+  "💎 Robert Montenegro hit Diamond tier with $45,500 total earnings",
+  "🌟 Jessica Williams made $8,945.20 profit this month",
+  "🚀 Alexander Chen just earned $6,895.80 from Forex trading signals",
+  "💵 Benjamin Carter withdrew $18,750.00 after 60 days of compounding",
+  "🎊 Maria Gonzalez reached Platinum status with $22,300 portfolio",
+  "⭐ Christopher Davis earned $5,422.15 from automated trading bots",
+  "💎 Amanda Foster just hit $35,890.00 from her initial $5,000 deposit"
 ];
 
 export const LiveTicker = () => {

@@ -43,12 +43,18 @@ export const HeroSection = () => {
         
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-          <Button className="cta-button text-xl px-12 py-6 group">
+          <Button 
+            className="cta-button text-xl px-12 py-6 group"
+            onClick={() => window.location.hash = 'investment-tiers'}
+          >
             <TrendingUp className="mr-3 h-6 w-6 group-hover:animate-bounce" />
             Start Earning Now
           </Button>
           
-          <Button className="bg-secondary hover:bg-muted border border-accent text-accent px-12 py-6 text-xl transition-smooth hover:scale-105">
+          <Button 
+            className="bg-secondary hover:bg-muted border border-accent text-accent px-12 py-6 text-xl transition-smooth hover:scale-105"
+            onClick={() => window.location.hash = 'calculator'}
+          >
             <Calculator className="mr-3 h-6 w-6" />
             Try Calculator
           </Button>
