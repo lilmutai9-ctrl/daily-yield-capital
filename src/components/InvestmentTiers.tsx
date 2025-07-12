@@ -73,7 +73,7 @@ export const InvestmentTiers = () => {
             className={`tier-card relative overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 ${tier.bgColor} ${tier.borderColor} ${
               tier.popular ? 'scale-105 border-2' : ''
             } ${tier.premium ? 'scale-105 border-2 animate-pulse' : ''}`}
-            onClick={() => window.location.hash = 'register'}
+            onClick={() => window.location.href = '/auth'}
           >
                 {tier.popular && (
                   <div className="absolute top-0 left-0 right-0 bg-warning text-warning-foreground text-center py-1 text-sm font-bold">
@@ -108,7 +108,7 @@ export const InvestmentTiers = () => {
                     className={`w-full ${tier.color === 'text-warning' ? 'cta-button' : 'bg-secondary hover:bg-muted'}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.location.hash = 'register';
+                      window.location.href = '/auth';
                     }}
                   >
                     Choose Plan

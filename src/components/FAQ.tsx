@@ -4,7 +4,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 const faqs = [
   {
     question: "How quickly can I withdraw my profits?",
-    answer: "Withdrawals are processed instantly for cryptocurrency and within 5-10 minutes for other payment methods. There are no withdrawal fees and no minimum withdrawal amount."
+    answer: "Withdrawals are processed instantly for cryptocurrency and within 5-10 minutes for other payment methods. There are no withdrawal fees and minimum withdrawal is $50."
   },
   {
     question: "What's the minimum investment amount?",
@@ -74,7 +74,10 @@ export const FAQ = () => {
 
         <div className="text-center mt-12">
           <p className="text-muted-foreground mb-4">Still have questions?</p>
-          <button className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3 rounded-lg font-semibold transition-colors">
+          <button 
+            onClick={() => window.location.href = '/support'}
+            className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3 rounded-lg font-semibold transition-colors"
+          >
             Contact Support
           </button>
         </div>

@@ -11,7 +11,7 @@ import { LiveTicker } from '@/components/LiveTicker';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-16">
       <HeroSection />
       <section id="calculator"><EarningsCalculator /></section>
       <section id="investment-tiers"><InvestmentTiers /></section>

@@ -24,15 +24,18 @@ export const HeroSection = () => {
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Invest in{' '}
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+            Professional{' '}
             <span className="bg-gradient-to-r from-accent to-success bg-clip-text text-transparent">
-              Forex, Crypto, and Stocks
+              Investment Platform
             </span>
           </h1>
-          <h2 className="text-6xl md:text-8xl font-bold bg-gradient-to-r from-warning to-accent bg-clip-text text-transparent mb-8">
-            With Daily Compounded Returns
+          <h2 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-warning to-accent bg-clip-text text-transparent mb-8">
+            Earn Daily Compounded Returns
           </h2>
+          <div className="text-2xl md:text-3xl font-semibold text-muted-foreground">
+            Forex • Cryptocurrency • Stocks
+          </div>
         </div>
         
         <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-4xl mx-auto leading-relaxed">
