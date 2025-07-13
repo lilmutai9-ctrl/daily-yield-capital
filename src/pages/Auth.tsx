@@ -51,7 +51,7 @@ const Auth = () => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/');
+        navigate('/dashboard');
       }
     };
     
@@ -60,7 +60,7 @@ const Auth = () => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate('/');
+        navigate('/dashboard');
       }
     });
 
@@ -137,7 +137,7 @@ const Auth = () => {
           title: "Welcome Back!",
           description: "You have successfully logged in."
         });
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error) {
       toast({
@@ -156,7 +156,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth?tab=reset-password`
+        redirectTo: `${window.location.origin}/dashboard`
       });
 
       if (error) {

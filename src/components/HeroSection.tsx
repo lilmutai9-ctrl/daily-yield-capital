@@ -48,7 +48,7 @@ export const HeroSection = () => {
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
           <Button 
             className="cta-button text-xl px-12 py-6 group"
-            onClick={() => window.location.hash = 'investment-tiers'}
+            onClick={() => window.location.href = '/auth'}
           >
             <TrendingUp className="mr-3 h-6 w-6 group-hover:animate-bounce" />
             Start Earning Now

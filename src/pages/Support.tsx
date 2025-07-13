@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageCircle, Phone, Mail, Clock, HeadphonesIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Support = () => {
   const [formData, setFormData] = useState({
@@ -12,11 +14,53 @@ const Support = () => {
     subject: '',
     message: ''
   });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Support form submitted:', formData);
+    setLoading(true);
+
+    try {
+      // Store message in database
+      const { error: dbError } = await supabase
+        .from('contact_messages')
+        .insert([formData]);
+
+      if (dbError) {
+        throw dbError;
+      }
+
+      // Send email via edge function
+      const { error: emailError } = await supabase.functions.invoke('send-contact-email', {
+        body: formData
+      });
+
+      if (emailError) {
+        console.error('Email sending error:', emailError);
+        // Don't throw here, as the message was still saved to DB
+      }
+
+      toast({
+        title: "Message Sent!",
+        description: "We've received your message and will respond within 1 hour."
+      });
+
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -119,8 +163,8 @@ const Support = () => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full cta-button">
-                  Send Message
+                <Button type="submit" disabled={loading} className="w-full cta-button">
+                  {loading ? "Sending..." : "Send Message"}
                 </Button>
               </form>
             </CardContent>
