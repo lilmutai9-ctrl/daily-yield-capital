@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, Eye, EyeOff, Upload } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -36,6 +36,8 @@ const Auth = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref');
 
   const plans = [
     { name: 'Starter', min: 10, max: 49, daily: 20, color: 'text-blue-400' },
@@ -78,7 +80,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: signupForm.email,
         password: signupForm.password,
         options: {
@@ -100,9 +102,34 @@ const Auth = () => {
           variant: "destructive"
         });
       } else {
+        // Handle referral if present
+        if (referralCode && data.user) {
+          try {
+            const { data: referrerData } = await supabase
+              .from('referral_codes')
+              .select('user_id')
+              .eq('code', referralCode)
+              .single();
+
+            if (referrerData) {
+              await supabase
+                .from('referrals')
+                .insert({
+                  referrer_id: referrerData.user_id,
+                  referred_id: data.user.id,
+                  referral_code: referralCode
+                });
+            }
+          } catch (refError) {
+            console.error('Error processing referral:', refError);
+          }
+        }
+
         toast({
           title: "Account Created Successfully!",
-          description: "Please check your email to verify your account."
+          description: referralCode 
+            ? "Please check your email to verify your account. You've been referred by a friend!"
+            : "Please check your email to verify your account."
         });
       }
     } catch (error) {

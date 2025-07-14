@@ -13,11 +13,18 @@ import {
   ArrowDownLeft,
   Timer,
   Target,
-  LogOut
+  LogOut,
+  Users,
+  Home,
+  Menu,
+  X,
+  Share2,
+  Gift
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { DashboardModals } from '@/components/DashboardModals';
 
 interface Investment {
   id: string;
@@ -36,11 +43,40 @@ interface Profile {
   phone: string;
 }
 
+interface ReferralCode {
+  code: string;
+  total_referrals: number;
+  total_earnings: number;
+}
+
+interface Referral {
+  id: string;
+  referrer_id: string;
+  referred_id: string;
+  referral_code: string;
+  status: string;
+  earnings_percentage: number;
+  total_earnings: number;
+  created_at: string;
+  updated_at: string;
+}
+
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [referralCode, setReferralCode] = useState<ReferralCode | null>(null);
+  const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Modal states
+  const [totalEarnedModal, setTotalEarnedModal] = useState(false);
+  const [activeInvestmentsModal, setActiveInvestmentsModal] = useState(false);
+  const [totalInvestmentModal, setTotalInvestmentModal] = useState(false);
+  const [portfolioValueModal, setPortfolioValueModal] = useState(false);
+  const [referralModal, setReferralModal] = useState(false);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -57,7 +93,12 @@ const Dashboard = () => {
       }
       
       setUser(user);
-      await Promise.all([loadProfile(user.id), loadInvestments(user.id)]);
+      await Promise.all([
+        loadProfile(user.id), 
+        loadInvestments(user.id),
+        loadReferralCode(user.id),
+        loadReferrals(user.id)
+      ]);
     } catch (error) {
       console.error('Error checking user:', error);
       navigate('/auth');
@@ -102,6 +143,42 @@ const Dashboard = () => {
     }
   };
 
+  const loadReferralCode = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('referral_codes')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading referral code:', error);
+      } else if (data) {
+        setReferralCode(data);
+      }
+    } catch (error) {
+      console.error('Error loading referral code:', error);
+    }
+  };
+
+  const loadReferrals = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('referrer_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error loading referrals:', error);
+      } else {
+        setReferrals(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading referrals:', error);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -117,6 +194,10 @@ const Dashboard = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const goHome = () => {
+    navigate('/');
   };
 
   const calculateTimeRemaining = (maturityDate: string) => {
@@ -147,6 +228,7 @@ const Dashboard = () => {
   const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
   const totalEarned = investments.reduce((sum, inv) => sum + inv.total_earned, 0);
   const activeInvestments = investments.filter(inv => inv.status === 'active').length;
+  const referralEarnings = referralCode?.total_earnings || 0;
 
   if (loading) {
     return (
@@ -164,23 +246,59 @@ const Dashboard = () => {
       {/* Header */}
       <div className="bg-card/80 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">
-              Welcome back, {profile?.first_name || user?.email?.split('@')[0] || 'Investor'}!
-            </h1>
-            <p className="text-muted-foreground">Monitor your investments and track your earnings</p>
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </Button>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold">
+                Welcome back, {profile?.first_name || user?.email?.split('@')[0] || 'Investor'}!
+              </h1>
+              <p className="text-sm md:text-base text-muted-foreground">Monitor your investments and track your earnings</p>
+            </div>
           </div>
-          <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={goHome} className="hidden md:flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              Home
+            </Button>
+            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+              <LogOut className="h-4 w-4" />
+              <span className="hidden md:inline">Logout</span>
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border/50 bg-card/95 backdrop-blur-sm">
+            <div className="px-4 py-3 space-y-2">
+              <Button variant="ghost" onClick={goHome} className="w-full justify-start">
+                <Home className="h-4 w-4 mr-2" />
+                Go Home
+              </Button>
+              <Button variant="ghost" onClick={() => setReferralModal(true)} className="w-full justify-start">
+                <Users className="h-4 w-4 mr-2" />
+                Referral Program
+              </Button>
+              <Button variant="ghost" onClick={() => navigate('/invest')} className="w-full justify-start">
+                <ArrowUpRight className="h-4 w-4 mr-2" />
+                New Investment
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-r from-accent/10 to-accent/5 border-accent/20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-to-r from-accent/10 to-accent/5 border-accent/20 cursor-pointer hover:scale-105 transition-all" onClick={() => setTotalInvestmentModal(true)}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -192,7 +310,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-success/10 to-success/5 border-success/20">
+          <Card className="bg-gradient-to-r from-success/10 to-success/5 border-success/20 cursor-pointer hover:scale-105 transition-all" onClick={() => setTotalEarnedModal(true)}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -204,7 +322,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-warning/10 to-warning/5 border-warning/20">
+          <Card className="bg-gradient-to-r from-warning/10 to-warning/5 border-warning/20 cursor-pointer hover:scale-105 transition-all" onClick={() => setActiveInvestmentsModal(true)}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -216,7 +334,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-purple-500/10 to-purple-500/5 border-purple-500/20">
+          <Card className="bg-gradient-to-r from-purple-500/10 to-purple-500/5 border-purple-500/20 cursor-pointer hover:scale-105 transition-all" onClick={() => setPortfolioValueModal(true)}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -229,9 +347,34 @@ const Dashboard = () => {
           </Card>
         </div>
 
+        {/* Referral Program Card */}
+        <Card className="mb-8 bg-gradient-to-r from-accent/10 via-success/10 to-warning/10 border-accent/20">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="bg-accent/20 p-3 rounded-full">
+                  <Gift className="h-8 w-8 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Referral Program</h3>
+                  <p className="text-muted-foreground">Earn 7% from every referral's investment profits</p>
+                  <div className="flex gap-4 mt-2">
+                    <span className="text-sm text-success font-medium">{referrals.length} Referrals</span>
+                    <span className="text-sm text-accent font-medium">${referralEarnings.toLocaleString()} Earned</span>
+                  </div>
+                </div>
+              </div>
+              <Button onClick={() => setReferralModal(true)} className="flex items-center gap-2">
+                <Share2 className="h-4 w-4" />
+                View Details
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Button className="cta-button p-6 h-auto flex flex-col items-center gap-2" onClick={() => navigate('/auth')}>
+          <Button className="cta-button p-6 h-auto flex flex-col items-center gap-2" onClick={() => navigate('/invest')}>
             <ArrowUpRight className="h-8 w-8" />
             <span className="text-lg">New Investment</span>
           </Button>
@@ -261,7 +404,7 @@ const Dashboard = () => {
                 <DollarSign className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-xl font-semibold mb-2">No Active Investments</h3>
                 <p className="text-muted-foreground mb-6">Start your investment journey today and begin earning daily returns!</p>
-                <Button className="cta-button" onClick={() => navigate('/auth')}>
+                <Button className="cta-button" onClick={() => navigate('/invest')}>
                   Make Your First Investment
                 </Button>
               </div>
@@ -379,6 +522,24 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Dashboard Modals */}
+        <DashboardModals
+          totalEarnedModal={totalEarnedModal}
+          setTotalEarnedModal={setTotalEarnedModal}
+          activeInvestmentsModal={activeInvestmentsModal}
+          setActiveInvestmentsModal={setActiveInvestmentsModal}
+          totalInvestmentModal={totalInvestmentModal}
+          setTotalInvestmentModal={setTotalInvestmentModal}
+          portfolioValueModal={portfolioValueModal}
+          setPortfolioValueModal={setPortfolioValueModal}
+          referralModal={referralModal}
+          setReferralModal={setReferralModal}
+          investments={investments}
+          referralCode={referralCode?.code || ''}
+          referrals={referrals}
+          referralEarnings={referralEarnings}
+        />
       </div>
     </div>
   );

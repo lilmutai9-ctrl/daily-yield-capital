@@ -8,6 +8,7 @@ import Support from "./pages/Support";
 import Legal from "./pages/Legal";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Invest from "./pages/Invest";
 import Testimonials from "./pages/Testimonials";
 import NotFound from "./pages/NotFound";
 import { Navigation } from "./components/Navigation";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/legal" element={<Legal />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/invest" element={<Invest />} />
           <Route path="/testimonials" element={<Testimonials />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
