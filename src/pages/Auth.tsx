@@ -84,7 +84,7 @@ const Auth = () => {
         email: signupForm.email,
         password: signupForm.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             first_name: signupForm.firstName,
             last_name: signupForm.lastName,
@@ -101,9 +101,9 @@ const Auth = () => {
           description: error.message,
           variant: "destructive"
         });
-      } else {
+      } else if (data.user) {
         // Handle referral if present
-        if (referralCode && data.user) {
+        if (referralCode) {
           try {
             const { data: referrerData } = await supabase
               .from('referral_codes')
@@ -127,10 +127,11 @@ const Auth = () => {
 
         toast({
           title: "Account Created Successfully!",
-          description: referralCode 
-            ? "Please check your email to verify your account. You've been referred by a friend!"
-            : "Please check your email to verify your account."
+          description: "Please check your email to verify your account."
         });
+        
+        // Redirect to dashboard after successful signup
+        navigate('/dashboard');
       }
     } catch (error) {
       toast({
