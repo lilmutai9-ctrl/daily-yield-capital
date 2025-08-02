@@ -32,21 +32,15 @@ const Admin = () => {
   }, []);
 
   const checkAdminAccess = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate('/auth');
-      return;
-    }
-    
-    // Simple admin check - in production, you'd have proper role-based access
-    const adminEmails = ['admin@dailyyieldcapital.com', 'admin@example.com'];
-    if (!adminEmails.includes(session.user.email || '')) {
+    // Check if user came from admin access portal
+    const hasAdminAccess = sessionStorage.getItem('adminAccess');
+    if (!hasAdminAccess) {
       toast({
         title: "Access Denied",
-        description: "You don't have admin privileges",
+        description: "Please use the admin access portal",
         variant: "destructive"
       });
-      navigate('/');
+      navigate('/admin-access');
       return;
     }
   };

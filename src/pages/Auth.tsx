@@ -3,17 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, Eye, EyeOff, Upload } from 'lucide-react';
+import { TrendingUp, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState('');
-  const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('signup');
   
   // Form states
   const [signupForm, setSignupForm] = useState({
@@ -21,8 +18,7 @@ const Auth = () => {
     lastName: '',
     email: '',
     phone: '',
-    password: '',
-    investmentAmount: ''
+    password: ''
   });
   
   const [loginForm, setLoginForm] = useState({
@@ -38,15 +34,6 @@ const Auth = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const referralCode = searchParams.get('ref');
-
-  const plans = [
-    { name: 'Starter', min: 10, max: 49, daily: 20, color: 'text-blue-400' },
-    { name: 'Basic', min: 50, max: 199, daily: 25, color: 'text-green-400' },
-    { name: 'Premium', min: 200, max: 999, daily: 30, color: 'text-purple-400' },
-    { name: 'VIP', min: 1000, max: 4999, daily: 35, color: 'text-orange-400' },
-    { name: 'Platinum', min: 5000, max: 19999, daily: 38, color: 'text-cyan-400' },
-    { name: 'Diamond', min: 20000, max: 999999, daily: 40, color: 'text-yellow-400' }
-  ];
 
   // Check if user is already logged in and listen for auth changes
   useEffect(() => {
@@ -69,11 +56,6 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setPaymentProof(e.target.files[0]);
-    }
-  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,9 +70,7 @@ const Auth = () => {
           data: {
             first_name: signupForm.firstName,
             last_name: signupForm.lastName,
-            phone: signupForm.phone,
-            selected_plan: selectedPlan,
-            investment_amount: signupForm.investmentAmount
+            phone: signupForm.phone
           }
         }
       });
@@ -298,72 +278,9 @@ const Auth = () => {
                     </button>
                   </div>
 
-                  {/* Investment Plan Selection */}
-                  <div>
-                    <label className="block text-sm font-medium mb-3">Choose Your Investment Plan</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {plans.map((plan) => (
-                        <button
-                          key={plan.name}
-                          type="button"
-                          onClick={() => setSelectedPlan(plan.name)}
-                          className={`p-4 rounded-lg border transition-all ${
-                            selectedPlan === plan.name 
-                              ? 'border-accent bg-accent/10' 
-                              : 'border-border hover:border-accent/50'
-                          }`}
-                        >
-                          <div className={`font-bold ${plan.color}`}>{plan.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            ${plan.min.toLocaleString()} - ${plan.max.toLocaleString()}
-                          </div>
-                          <div className="text-sm font-medium">{plan.daily}% Daily</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Initial Investment Amount</label>
-                    <Input 
-                      type="number" 
-                      value={signupForm.investmentAmount}
-                      onChange={(e) => setSignupForm({...signupForm, investmentAmount: e.target.value})}
-                      placeholder="Enter amount ($50 minimum)" 
-                      min="50" 
-                      required 
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">Minimum withdrawal: $50</p>
-                  </div>
-
-                  {/* Payment Proof Upload */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Upload Payment Proof</label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Upload screenshot of your deposit/transfer
-                      </p>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        id="payment-proof"
-                      />
-                      <label htmlFor="payment-proof">
-                        <Button type="button" variant="outline" className="cursor-pointer" asChild>
-                          <span>Choose File</span>
-                        </Button>
-                      </label>
-                      {paymentProof && (
-                        <p className="text-sm text-success mt-2">✓ {paymentProof.name}</p>
-                      )}
-                    </div>
-                  </div>
 
                   <Button type="submit" disabled={loading} className="w-full cta-button text-lg py-6">
-                    {loading ? "Creating Account..." : "Create Account & Start Earning"}
+                    {loading ? "Creating Account..." : "Create Account"}
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">

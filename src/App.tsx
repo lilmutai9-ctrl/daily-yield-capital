@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Invest from "./pages/Invest";
 import Admin from "./pages/Admin";
+import AdminAccess from "./pages/AdminAccess";
 import Testimonials from "./pages/Testimonials";
 import NotFound from "./pages/NotFound";
 import { Navigation } from "./components/Navigation";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/invest" element={<Invest />} />
+          <Route path="/admin-access" element={<AdminAccess />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/testimonials" element={<Testimonials />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

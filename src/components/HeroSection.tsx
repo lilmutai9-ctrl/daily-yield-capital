@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, Calculator, PlayCircle } from 'lucide-react';
+import { TrendingUp, Calculator, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import heroImage from '@/assets/hero-bg.jpg';
 
@@ -60,6 +60,19 @@ export const HeroSection = () => {
           >
             <Calculator className="mr-3 h-6 w-6" />
             Try Calculator
+          </Button>
+        </div>
+
+        {/* Admin Access - Discrete button */}
+        <div className="flex justify-center mb-8">
+          <Button 
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground opacity-50 hover:opacity-100 transition-all"
+            onClick={() => window.location.href = '/admin-access'}
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            Admin Portal
           </Button>
         </div>
         
