@@ -25,6 +25,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardModals } from '@/components/DashboardModals';
+import NotificationBell from '@/components/NotificationBell';
+import WithdrawalModal from '@/components/WithdrawalModal';
 
 interface Investment {
   id: string;
@@ -67,6 +69,7 @@ const Dashboard = () => {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [referralCode, setReferralCode] = useState<ReferralCode | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -82,7 +85,35 @@ const Dashboard = () => {
 
   useEffect(() => {
     checkUser();
+    setupRealtimeSubscriptions();
   }, []);
+
+  const setupRealtimeSubscriptions = () => {
+    // Subscribe to investments changes
+    const investmentsChannel = supabase
+      .channel('investments-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'investments' }, () => {
+        if (user) {
+          loadInvestments(user.id);
+        }
+      })
+      .subscribe();
+
+    // Subscribe to withdrawals changes
+    const withdrawalsChannel = supabase
+      .channel('withdrawals-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals' }, () => {
+        if (user) {
+          loadWithdrawals(user.id);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(investmentsChannel);
+      supabase.removeChannel(withdrawalsChannel);
+    };
+  };
 
   const checkUser = async () => {
     try {
@@ -97,7 +128,8 @@ const Dashboard = () => {
         loadProfile(user.id), 
         loadInvestments(user.id),
         loadReferralCode(user.id),
-        loadReferrals(user.id)
+        loadReferrals(user.id),
+        loadWithdrawals(user.id)
       ]);
     } catch (error) {
       console.error('Error checking user:', error);
@@ -176,6 +208,24 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error('Error loading referrals:', error);
+    }
+  };
+
+  const loadWithdrawals = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('withdrawals')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error loading withdrawals:', error);
+      } else {
+        setWithdrawals(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading withdrawals:', error);
     }
   };
 
@@ -263,6 +313,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <NotificationBell />
             <Button variant="outline" onClick={goHome} className="hidden md:flex items-center gap-2">
               <Home className="h-4 w-4" />
               Home
@@ -379,10 +430,10 @@ const Dashboard = () => {
             <span className="text-lg">New Investment</span>
           </Button>
           
-          <Button variant="outline" className="p-6 h-auto flex flex-col items-center gap-2 border-success text-success hover:bg-success/10">
-            <ArrowDownLeft className="h-8 w-8" />
-            <span className="text-lg">Request Withdrawal</span>
-          </Button>
+          <WithdrawalModal 
+            availableBalance={totalEarned} 
+            onSuccess={() => user && loadWithdrawals(user.id)}
+          />
           
           <Button variant="outline" className="p-6 h-auto flex flex-col items-center gap-2" onClick={() => navigate('/support')}>
             <Timer className="h-8 w-8" />
