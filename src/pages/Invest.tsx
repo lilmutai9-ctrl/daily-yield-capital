@@ -99,41 +99,8 @@ const Invest = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      // Calculate maturity date (30 days from now)
-      const maturityDate = new Date();
-      maturityDate.setDate(maturityDate.getDate() + 30);
-
-      const { error } = await supabase
-        .from('investments')
-        .insert({
-          user_id: user.id,
-          plan_name: selectedTier.name,
-          amount: parseFloat(amount),
-          daily_rate: selectedTier.rate,
-          maturity_date: maturityDate.toISOString(),
-          status: 'active'
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Investment Successful!",
-        description: `Your ${selectedTier.name} investment of $${amount} has been activated.`
-      });
-
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error creating investment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create investment. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Navigate to crypto payment page instead of directly creating investment
+    navigate(`/crypto-payment?tier=${selectedTier.name}&amount=${amount}&rate=${selectedTier.rate}`);
   };
 
   const projections = calculateProjections();

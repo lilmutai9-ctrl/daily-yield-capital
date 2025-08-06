@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,14 +28,18 @@ const Admin = () => {
   const [referrals, setReferrals] = useState([]);
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
+  const [userNotes, setUserNotes] = useState([]);
   const [selectedTab, setSelectedTab] = useState('overview');
   const [adminNotes, setAdminNotes] = useState('');
+  const [newNote, setNewNote] = useState({ userId: '', title: '', content: '' });
+  const [editingNote, setEditingNote] = useState(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAdminAccess();
     fetchAdminData();
+    fetchUserNotes();
     setupRealtimeSubscriptions();
   }, []);
 
@@ -228,6 +233,123 @@ const Admin = () => {
     }
   };
 
+  const fetchUserNotes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_notes')
+        .select('*, profiles(first_name, last_name)')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUserNotes(data || []);
+    } catch (error) {
+      console.error('Error fetching user notes:', error);
+    }
+  };
+
+  const handleCreateNote = async () => {
+    if (!newNote.userId || !newNote.title || !newNote.content) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from('user_notes')
+        .insert({
+          user_id: newNote.userId,
+          admin_id: user?.id,
+          title: newNote.title,
+          content: newNote.content
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Note created successfully"
+      });
+
+      setNewNote({ userId: '', title: '', content: '' });
+      fetchUserNotes();
+    } catch (error) {
+      console.error('Error creating note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create note",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUpdateNote = async () => {
+    if (!editingNote?.title || !editingNote?.content) {
+      toast({
+        title: "Error",
+        description: "Title and content are required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('user_notes')
+        .update({
+          title: editingNote.title,
+          content: editingNote.content
+        })
+        .eq('id', editingNote.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Note updated successfully"
+      });
+
+      setEditingNote(null);
+      fetchUserNotes();
+    } catch (error) {
+      console.error('Error updating note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update note",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_notes')
+        .delete()
+        .eq('id', noteId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Note deleted successfully"
+      });
+
+      fetchUserNotes();
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete note",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleWithdrawalAction = async (withdrawalId: string, action: 'approve' | 'reject') => {
     try {
       const withdrawal = withdrawals.find(w => w.id === withdrawalId);
@@ -320,13 +442,14 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="investments">Investments</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
+            <TabsTrigger value="notes">Notes</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -751,6 +874,115 @@ const Admin = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* User Notes Tab */}
+          <TabsContent value="notes">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Notes Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Create New Note */}
+                <div className="mb-6 p-4 border rounded-lg bg-secondary/20">
+                  <h3 className="font-semibold mb-4">Create New Note</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="user-select">Select User</Label>
+                      <select
+                        id="user-select"
+                        className="w-full p-2 border rounded"
+                        value={newNote.userId}
+                        onChange={(e) => setNewNote({ ...newNote, userId: e.target.value })}
+                      >
+                        <option value="">Select a user...</option>
+                        {users.map((user) => (
+                          <option key={user.user_id} value={user.user_id}>
+                            {user.first_name} {user.last_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="note-title">Title</Label>
+                      <Input
+                        id="note-title"
+                        value={newNote.title}
+                        onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+                        placeholder="Note title..."
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="note-content">Content</Label>
+                      <textarea
+                        id="note-content"
+                        className="w-full p-2 border rounded min-h-[100px]"
+                        value={newNote.content}
+                        onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                        placeholder="Note content..."
+                      />
+                    </div>
+                    <Button onClick={handleCreateNote}>Create Note</Button>
+                  </div>
+                </div>
+
+                {/* Existing Notes */}
+                <div className="space-y-4">
+                  {userNotes.map((note) => (
+                    <div key={note.id} className="p-4 border rounded-lg">
+                      {editingNote?.id === note.id ? (
+                        <div className="space-y-4">
+                          <Input
+                            value={editingNote.title}
+                            onChange={(e) => setEditingNote({ ...editingNote, title: e.target.value })}
+                          />
+                          <textarea
+                            className="w-full p-2 border rounded min-h-[100px]"
+                            value={editingNote.content}
+                            onChange={(e) => setEditingNote({ ...editingNote, content: e.target.value })}
+                          />
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={handleUpdateNote}>Save</Button>
+                            <Button size="sm" variant="outline" onClick={() => setEditingNote(null)}>Cancel</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h4 className="font-semibold">{note.title}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                For: {note.profiles?.first_name} {note.profiles?.last_name}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => setEditingNote(note)}
+                              >
+                                Edit
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => handleDeleteNote(note.id)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                          <p className="text-muted-foreground whitespace-pre-wrap">{note.content}</p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Created: {new Date(note.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
