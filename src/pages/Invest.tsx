@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { InvestmentTiers } from '@/components/InvestmentTiers';
-import { PaymentMethods } from '@/components/PaymentMethods';
+// PaymentMethods removed - crypto only
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Crown, Star, Award, Diamond, Zap, ArrowLeft, Calculator, CheckCircle } from 'lucide-react';
@@ -22,6 +22,7 @@ const tiers = [
 const Invest = () => {
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState('');
+  const [duration, setDuration] = useState('');
   const [selectedTier, setSelectedTier] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -90,17 +91,17 @@ const Invest = () => {
   };
 
   const handleInvestment = async () => {
-    if (!selectedTier || !amount) {
+    if (!selectedTier || !amount || !duration) {
       toast({
         title: "Error",
-        description: "Please select an investment amount",
+        description: "Please select an investment amount and duration",
         variant: "destructive"
       });
       return;
     }
 
     // Navigate to crypto payment page instead of directly creating investment
-    navigate(`/crypto-payment?tier=${selectedTier.name}&amount=${amount}&rate=${selectedTier.rate}`);
+    navigate(`/crypto-payment?tier=${selectedTier.name}&amount=${amount}&rate=${selectedTier.rate}&duration=${duration}`);
   };
 
   const projections = calculateProjections();
@@ -236,13 +237,13 @@ const Invest = () => {
                   <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
                     Back
                   </Button>
-                  <Button 
-                    onClick={() => setStep(3)} 
-                    className="flex-1 cta-button"
-                    disabled={!selectedTier || !amount || parseFloat(amount) < selectedTier.min}
-                  >
-                    Continue to Payment
-                  </Button>
+                   <Button 
+                     onClick={() => setStep(3)} 
+                     className="flex-1 cta-button"
+                     disabled={!selectedTier || !amount || !duration || parseFloat(amount) < selectedTier.min}
+                   >
+                     Continue to Payment
+                   </Button>
                 </div>
               </CardContent>
             </Card>
@@ -269,38 +270,62 @@ const Invest = () => {
                     </div>
                   </div>
                   
-                  <div className="grid md:grid-cols-3 gap-4 text-center">
-                    <div className="p-3 bg-accent/10 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Investment Period</p>
-                      <p className="font-bold">30 Days</p>
-                    </div>
-                    <div className="p-3 bg-success/10 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Expected Return</p>
-                      <p className="font-bold text-success">${projections?.monthly.toFixed(2)}</p>
-                    </div>
-                    <div className="p-3 bg-warning/10 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Total Value</p>
-                      <p className="font-bold text-warning">${(parseFloat(amount) + (projections?.monthly || 0)).toFixed(2)}</p>
-                    </div>
-                  </div>
+                   <div className="space-y-4 mb-6">
+                     <div>
+                       <Label htmlFor="duration">Investment Duration</Label>
+                       <select 
+                         id="duration"
+                         value={duration}
+                         onChange={(e) => setDuration(e.target.value)}
+                         className="w-full mt-1 p-3 border border-border rounded-lg bg-background text-foreground"
+                         required
+                       >
+                         <option value="">Select duration...</option>
+                         <option value="7">1 Week (7 days)</option>
+                         <option value="14">2 Weeks (14 days)</option>
+                         <option value="30">1 Month (30 days)</option>
+                         <option value="60">2 Months (60 days)</option>
+                         <option value="90">3 Months (90 days)</option>
+                         <option value="180">6 Months (180 days)</option>
+                         <option value="365">1 Year (365 days)</option>
+                       </select>
+                     </div>
+                   </div>
 
-                  <Button 
-                    onClick={handleInvestment}
-                    disabled={loading}
-                    className="w-full cta-button text-lg py-6"
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Processing Investment...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5" />
-                        Confirm Investment
-                      </div>
-                    )}
-                  </Button>
+                   {duration && (
+                     <div className="grid md:grid-cols-3 gap-4 text-center">
+                       <div className="p-3 bg-accent/10 rounded-lg">
+                         <p className="text-sm text-muted-foreground">Investment Period</p>
+                         <p className="font-bold">{duration} Days</p>
+                       </div>
+                       <div className="p-3 bg-success/10 rounded-lg">
+                         <p className="text-sm text-muted-foreground">Expected Return</p>
+                         <p className="font-bold text-success">${projections && duration ? (projections.daily * parseInt(duration)).toFixed(2) : '0.00'}</p>
+                       </div>
+                       <div className="p-3 bg-warning/10 rounded-lg">
+                         <p className="text-sm text-muted-foreground">Total Value</p>
+                         <p className="font-bold text-warning">${projections && duration ? (parseFloat(amount) + (projections.daily * parseInt(duration))).toFixed(2) : parseFloat(amount || '0').toFixed(2)}</p>
+                       </div>
+                     </div>
+                   )}
+
+                   <Button 
+                     onClick={handleInvestment}
+                     disabled={loading || !duration}
+                     className="w-full cta-button text-lg py-6"
+                   >
+                     {loading ? (
+                       <div className="flex items-center gap-2">
+                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                         Processing Investment...
+                       </div>
+                     ) : (
+                       <div className="flex items-center gap-2">
+                         <CheckCircle className="h-5 w-5" />
+                         Confirm Investment
+                       </div>
+                     )}
+                   </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
                     By confirming this investment, you agree to our terms and conditions. 
@@ -310,7 +335,7 @@ const Invest = () => {
               </CardContent>
             </Card>
 
-            <PaymentMethods />
+            {/* Removed PaymentMethods - crypto only */}
           </div>
         )}
       </div>

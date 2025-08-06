@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Copy, ExternalLink, Bitcoin, Zap, Wallet } from 'lucide-react';
+import { ArrowLeft, Copy, ExternalLink, Bitcoin, Zap, Wallet, Info } from 'lucide-react';
 
 const paymentMethods = [
   {
@@ -224,6 +224,24 @@ const CryptoPayment = () => {
                 <strong>Important:</strong> Make sure to send the exact amount in USD value. 
                 Your investment will be activated once the payment is confirmed by our admin team.
               </p>
+            </div>
+
+            {/* Wallet Setup Guide Link */}
+            <div className="mt-6 p-4 bg-accent/10 rounded-lg border border-accent/20">
+              <div className="flex items-center gap-3 mb-2">
+                <Info className="h-5 w-5 text-accent" />
+                <h4 className="font-semibold">Don't have a crypto wallet?</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                New to cryptocurrency? Learn how to create a wallet and buy crypto in our comprehensive guide.
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/wallet-guide')}
+                className="w-full"
+              >
+                Complete Wallet Setup Guide
+              </Button>
             </div>
 
             <div className="mt-4 text-center">

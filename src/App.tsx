@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Invest from "./pages/Invest";
 import CryptoPayment from "./pages/CryptoPayment";
 import CryptoGuide from "./pages/CryptoGuide";
+import WalletGuide from "./pages/WalletGuide";
 import Admin from "./pages/Admin";
 import AdminAccess from "./pages/AdminAccess";
 import Testimonials from "./pages/Testimonials";
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/invest" element={<Invest />} />
           <Route path="/crypto-payment" element={<CryptoPayment />} />
           <Route path="/crypto-guide" element={<CryptoGuide />} />
+          <Route path="/wallet-guide" element={<WalletGuide />} />
           <Route path="/admin-access" element={<AdminAccess />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/testimonials" element={<Testimonials />} />

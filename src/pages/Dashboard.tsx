@@ -27,7 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DashboardModals } from '@/components/DashboardModals';
 import NotificationBell from '@/components/NotificationBell';
 import WithdrawalModal from '@/components/WithdrawalModal';
-import UserNotes from '@/components/UserNotes';
+import PendingDeposits from '@/components/PendingDeposits';
 
 interface Investment {
   id: string;
@@ -593,10 +593,18 @@ const Dashboard = () => {
           referralEarnings={referralEarnings}
         />
 
-        {/* User Notes Section */}
-        <div className="mt-8">
-          <UserNotes />
-        </div>
+        {/* Pending Deposits Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ArrowDownLeft className="h-5 w-5" />
+              Pending Deposits
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PendingDeposits />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
