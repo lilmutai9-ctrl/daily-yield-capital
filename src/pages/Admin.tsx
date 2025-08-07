@@ -83,57 +83,129 @@ const Admin = () => {
   const fetchAdminData = async () => {
     try {
       // Fetch profiles count
-      const { count: userCount } = await supabase
+      const { count: userCount, error: userCountError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
+      if (userCountError) {
+        console.error('Error fetching user count:', userCountError);
+      }
+
       // Fetch investments data
-      const { data: investmentsData, count: investmentCount } = await supabase
+      const { data: investmentsData, count: investmentCount, error: investmentsError } = await supabase
         .from('investments')
         .select('*', { count: 'exact' });
+
+      if (investmentsError) {
+        console.error('Error fetching investments:', investmentsError);
+      }
 
       const totalAmount = investmentsData?.reduce((sum, inv) => sum + Number(inv.amount), 0) || 0;
       const activeInvs = investmentsData?.filter(inv => inv.status === 'active').length || 0;
 
-      // Fetch deposits
-      const { data: depositsData, count: depositsCount } = await supabase
+      // Fetch deposits with user profile data
+      const { data: depositsData, error: depositsError } = await supabase
         .from('deposits')
-        .select(`
-          *,
-          profiles:user_id(first_name, last_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
+
+      if (depositsError) {
+        console.error('Error fetching deposits:', depositsError);
+      }
+
+      // Fetch user profiles for deposits
+      const depositsWithProfiles = [];
+      if (depositsData && depositsData.length > 0) {
+        for (const deposit of depositsData) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', deposit.user_id)
+            .single();
+          
+          depositsWithProfiles.push({
+            ...deposit,
+            profiles: profile
+          });
+        }
+      }
 
       const pendingDepositsCount = depositsData?.filter(dep => dep.status === 'pending').length || 0;
 
-      // Fetch withdrawals
-      const { data: withdrawalsData, count: withdrawalsCount } = await supabase
+      // Fetch withdrawals with user profile data
+      const { data: withdrawalsData, error: withdrawalsError } = await supabase
         .from('withdrawals')
-        .select(`
-          *,
-          profiles:user_id(first_name, last_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
+
+      if (withdrawalsError) {
+        console.error('Error fetching withdrawals:', withdrawalsError);
+      }
+
+      // Fetch user profiles for withdrawals
+      const withdrawalsWithProfiles = [];
+      if (withdrawalsData && withdrawalsData.length > 0) {
+        for (const withdrawal of withdrawalsData) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', withdrawal.user_id)
+            .single();
+          
+          withdrawalsWithProfiles.push({
+            ...withdrawal,
+            profiles: profile
+          });
+        }
+      }
 
       const pendingWithdrawalsCount = withdrawalsData?.filter(wd => wd.status === 'pending').length || 0;
 
       // Fetch users with profiles
-      const { data: usersData } = await supabase
+      const { data: usersData, error: usersError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
-      // Fetch referrals
-      const { data: referralsData } = await supabase
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+      }
+
+      // Fetch referrals with user profile data
+      const { data: referralsData, error: referralsError } = await supabase
         .from('referrals')
-        .select(`
-          *,
-          referrer:referrer_id(first_name, last_name),
-          referred:referred_id(first_name, last_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
+
+      if (referralsError) {
+        console.error('Error fetching referrals:', referralsError);
+      }
+
+      // Fetch user profiles for referrals
+      const referralsWithProfiles = [];
+      if (referralsData && referralsData.length > 0) {
+        for (const referral of referralsData) {
+          const { data: referrerProfile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', referral.referrer_id)
+            .single();
+          
+          const { data: referredProfile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', referral.referred_id)
+            .single();
+          
+          referralsWithProfiles.push({
+            ...referral,
+            referrer: referrerProfile,
+            referred: referredProfile
+          });
+        }
+      }
 
       setStats({
         totalUsers: userCount || 0,
@@ -146,9 +218,9 @@ const Admin = () => {
 
       setUsers(usersData || []);
       setInvestments(investmentsData || []);
-      setReferrals(referralsData || []);
-      setDeposits(depositsData || []);
-      setWithdrawals(withdrawalsData || []);
+      setReferrals(referralsWithProfiles || []);
+      setDeposits(depositsWithProfiles || []);
+      setWithdrawals(withdrawalsWithProfiles || []);
     } catch (error) {
       console.error('Error fetching admin data:', error);
       toast({
@@ -240,13 +312,34 @@ const Admin = () => {
 
   const fetchUserNotes = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: notesData, error } = await supabase
         .from('user_notes')
-        .select('*, profiles(first_name, last_name)')
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUserNotes(data || []);
+      if (error) {
+        console.error('Error fetching user notes:', error);
+        return;
+      }
+
+      // Fetch user profiles for notes
+      const notesWithProfiles = [];
+      if (notesData && notesData.length > 0) {
+        for (const note of notesData) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', note.user_id)
+            .single();
+          
+          notesWithProfiles.push({
+            ...note,
+            profiles: profile
+          });
+        }
+      }
+
+      setUserNotes(notesWithProfiles || []);
     } catch (error) {
       console.error('Error fetching user notes:', error);
     }
