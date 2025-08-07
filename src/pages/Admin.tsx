@@ -181,15 +181,20 @@ const Admin = () => {
 
       // If approved, create investment
       if (action === 'approve') {
+        // Get investment details from payment proof (assuming they're stored there)
+        // Default values for when details are not available
+        const defaultDuration = 30; // 30 days default
+        const defaultRate = 3.5; // 3.5% default daily rate
+        
         const { error: investmentError } = await supabase
           .from('investments')
           .insert({
             user_id: deposit.user_id,
             amount: deposit.amount,
             plan_name: 'Standard Plan',
-            daily_rate: 3.5,
+            daily_rate: defaultRate,
             start_date: new Date().toISOString(),
-            maturity_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            maturity_date: new Date(Date.now() + defaultDuration * 24 * 60 * 60 * 1000).toISOString(),
             status: 'active'
           });
 
