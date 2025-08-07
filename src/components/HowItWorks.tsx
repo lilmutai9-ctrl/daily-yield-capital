@@ -12,7 +12,7 @@ const steps = [
   {
     icon: DollarSign,
     title: 'Choose & Deposit',
-    description: 'Select your investment tier and deposit using crypto, cards, or bank transfer.',
+    description: 'Select your investment tier and deposit using cryptocurrency.',
     color: 'text-warning'
   },
   {

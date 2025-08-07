@@ -240,7 +240,7 @@ const Invest = () => {
                    <Button 
                      onClick={() => setStep(3)} 
                      className="flex-1 cta-button"
-                     disabled={!selectedTier || !amount || !duration || parseFloat(amount) < selectedTier.min}
+                     disabled={!selectedTier || !amount || parseFloat(amount) < selectedTier?.min}
                    >
                      Continue to Payment
                    </Button>

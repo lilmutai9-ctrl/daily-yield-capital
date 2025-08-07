@@ -120,27 +120,17 @@ const WithdrawalModal = ({ availableBalance, onSuccess }: WithdrawalModalProps) 
                 <SelectItem value="bitcoin">Bitcoin</SelectItem>
                 <SelectItem value="ethereum">Ethereum</SelectItem>
                 <SelectItem value="usdt">USDT (Tether)</SelectItem>
-                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                <SelectItem value="paypal">PayPal</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
             <Label htmlFor="withdrawalAddress">
-              {formData.withdrawalMethod === 'bank_transfer' ? 'Bank Account Details' :
-               formData.withdrawalMethod === 'paypal' ? 'PayPal Email' :
-               'Wallet Address'}
+              Wallet Address
             </Label>
             <Textarea
               id="withdrawalAddress"
-              placeholder={
-                formData.withdrawalMethod === 'bank_transfer' 
-                  ? 'Bank name, account number, routing number, etc.'
-                  : formData.withdrawalMethod === 'paypal'
-                  ? 'your-email@example.com'
-                  : 'Enter your wallet address'
-              }
+              placeholder="Enter your wallet address"
               value={formData.withdrawalAddress}
               onChange={(e) => setFormData(prev => ({ ...prev, withdrawalAddress: e.target.value }))}
               required

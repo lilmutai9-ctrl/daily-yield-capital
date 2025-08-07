@@ -63,18 +63,6 @@ export const HeroSection = () => {
           </Button>
         </div>
 
-        {/* Admin Access - Discrete button */}
-        <div className="flex justify-center mb-8">
-          <Button 
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-foreground opacity-50 hover:opacity-100 transition-all"
-            onClick={() => window.location.href = '/admin-access'}
-          >
-            <Shield className="mr-2 h-4 w-4" />
-            Admin Portal
-          </Button>
-        </div>
         
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
