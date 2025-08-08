@@ -62,6 +62,7 @@ const Admin = () => {
     const depositsChannel = supabase
       .channel('deposits-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'deposits' }, () => {
+        console.log('Deposits table changed - refreshing data');
         fetchAdminData();
       })
       .subscribe();
@@ -70,6 +71,16 @@ const Admin = () => {
     const withdrawalsChannel = supabase
       .channel('withdrawals-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals' }, () => {
+        console.log('Withdrawals table changed - refreshing data');
+        fetchAdminData();
+      })
+      .subscribe();
+
+    // Subscribe to investments changes
+    const investmentsChannel = supabase
+      .channel('investments-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'investments' }, () => {
+        console.log('Investments table changed - refreshing data');
         fetchAdminData();
       })
       .subscribe();
@@ -77,11 +88,35 @@ const Admin = () => {
     return () => {
       supabase.removeChannel(depositsChannel);
       supabase.removeChannel(withdrawalsChannel);
+      supabase.removeChannel(investmentsChannel);
     };
+  };
+
+  const logAdminActivity = async (actionType: string, targetTable: string, targetId: string, oldStatus: string, newStatus: string, userAffected: string, amount: number, notes?: string) => {
+    try {
+      await supabase
+        .from('admin_activity_logs')
+        .insert({
+          admin_session: `admin-${Date.now()}`,
+          action_type: actionType,
+          target_table: targetTable,
+          target_id: targetId,
+          old_status: oldStatus,
+          new_status: newStatus,
+          admin_notes: notes,
+          user_affected: userAffected,
+          amount: amount
+        });
+    } catch (error) {
+      console.error('Failed to log admin activity:', error);
+    }
   };
 
   const fetchAdminData = async () => {
     try {
+      console.log('Fetching admin data...');
+      setLoading(true);
+
       // Fetch profiles count
       const { count: userCount, error: userCountError } = await supabase
         .from('profiles')
@@ -91,19 +126,22 @@ const Admin = () => {
         console.error('Error fetching user count:', userCountError);
       }
 
-      // Fetch investments data
+      // Fetch ALL investments data (no filters)
       const { data: investmentsData, count: investmentCount, error: investmentsError } = await supabase
         .from('investments')
-        .select('*', { count: 'exact' });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false });
 
       if (investmentsError) {
         console.error('Error fetching investments:', investmentsError);
       }
 
+      console.log('Fetched investments:', investmentsData?.length || 0);
+
       const totalAmount = investmentsData?.reduce((sum, inv) => sum + Number(inv.amount), 0) || 0;
       const activeInvs = investmentsData?.filter(inv => inv.status === 'active').length || 0;
 
-      // Fetch deposits with user profile data
+      // Fetch ALL deposits with user profile data (no filters)
       const { data: depositsData, error: depositsError } = await supabase
         .from('deposits')
         .select('*')
@@ -112,6 +150,8 @@ const Admin = () => {
       if (depositsError) {
         console.error('Error fetching deposits:', depositsError);
       }
+
+      console.log('Fetched deposits:', depositsData?.length || 0, 'Pending:', depositsData?.filter(d => d.status === 'pending').length || 0);
 
       // Fetch user profiles for deposits
       const depositsWithProfiles = [];
@@ -132,7 +172,7 @@ const Admin = () => {
 
       const pendingDepositsCount = depositsData?.filter(dep => dep.status === 'pending').length || 0;
 
-      // Fetch withdrawals with user profile data
+      // Fetch ALL withdrawals with user profile data (no filters)
       const { data: withdrawalsData, error: withdrawalsError } = await supabase
         .from('withdrawals')
         .select('*')
@@ -141,6 +181,8 @@ const Admin = () => {
       if (withdrawalsError) {
         console.error('Error fetching withdrawals:', withdrawalsError);
       }
+
+      console.log('Fetched withdrawals:', withdrawalsData?.length || 0, 'Pending:', withdrawalsData?.filter(w => w.status === 'pending').length || 0);
 
       // Fetch user profiles for withdrawals
       const withdrawalsWithProfiles = [];
@@ -161,12 +203,29 @@ const Admin = () => {
 
       const pendingWithdrawalsCount = withdrawalsData?.filter(wd => wd.status === 'pending').length || 0;
 
+      // Fetch investments with user profile data
+      const investmentsWithProfiles = [];
+      if (investmentsData && investmentsData.length > 0) {
+        for (const investment of investmentsData) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', investment.user_id)
+            .single();
+          
+          investmentsWithProfiles.push({
+            ...investment,
+            profiles: profile
+          });
+        }
+      }
+
       // Fetch users with profiles
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(100);
 
       if (usersError) {
         console.error('Error fetching users:', usersError);
@@ -217,10 +276,12 @@ const Admin = () => {
       });
 
       setUsers(usersData || []);
-      setInvestments(investmentsData || []);
+      setInvestments(investmentsWithProfiles || []);
       setReferrals(referralsWithProfiles || []);
       setDeposits(depositsWithProfiles || []);
       setWithdrawals(withdrawalsWithProfiles || []);
+
+      console.log('Admin data updated - Pending deposits:', pendingDepositsCount, 'Pending withdrawals:', pendingWithdrawalsCount);
     } catch (error) {
       console.error('Error fetching admin data:', error);
       toast({
@@ -310,6 +371,17 @@ const Admin = () => {
       }
 
       // Log the action
+      await logAdminActivity(
+        `deposit_${action}`,
+        'deposits',
+        depositId,
+        deposit.status,
+        action === 'approve' ? 'approved' : 'rejected',
+        deposit.user_id,
+        deposit.amount,
+        adminNotes
+      );
+
       console.log(`Admin ${action}d deposit ${depositId} for user ${deposit.user_id} amount $${deposit.amount}`);
 
       toast({
@@ -507,6 +579,17 @@ const Admin = () => {
       }
 
       // Log the action
+      await logAdminActivity(
+        `withdrawal_${action}`,
+        'withdrawals',
+        withdrawalId,
+        withdrawal.status,
+        action === 'approve' ? 'completed' : 'rejected',
+        withdrawal.user_id,
+        withdrawal.amount,
+        adminNotes
+      );
+
       console.log(`Admin ${action}d withdrawal ${withdrawalId} for user ${withdrawal.user_id} amount $${withdrawal.amount}`);
 
       toast({
@@ -563,6 +646,17 @@ const Admin = () => {
       }
 
       // Log the action
+      await logAdminActivity(
+        `investment_${action}`,
+        'investments',
+        investmentId,
+        investment.status,
+        action === 'approve' ? 'active' : 'rejected',
+        investment.user_id,
+        investment.amount,
+        adminNotes
+      );
+
       console.log(`Admin ${action}d investment ${investmentId} for user ${investment.user_id} amount $${investment.amount}`);
 
       toast({

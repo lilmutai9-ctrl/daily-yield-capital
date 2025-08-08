@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activity_logs: {
+        Row: {
+          action_type: string
+          admin_notes: string | null
+          admin_session: string
+          amount: number | null
+          created_at: string
+          id: string
+          new_status: string | null
+          old_status: string | null
+          target_id: string
+          target_table: string
+          user_affected: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_notes?: string | null
+          admin_session: string
+          amount?: number | null
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          old_status?: string | null
+          target_id: string
+          target_table: string
+          user_affected?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_notes?: string | null
+          admin_session?: string
+          amount?: number | null
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          old_status?: string | null
+          target_id?: string
+          target_table?: string
+          user_affected?: string | null
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string
