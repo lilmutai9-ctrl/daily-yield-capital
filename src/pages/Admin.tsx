@@ -240,19 +240,13 @@ const Admin = () => {
         throw new Error('Deposit not found');
       }
 
-      // Get current user (admin)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Admin not authenticated');
-      }
-
-      // Update deposit status
+      // Update deposit status with admin session (no need for user auth check)
       const { error: depositError } = await supabase
         .from('deposits')
         .update({
           status: action === 'approve' ? 'approved' : 'rejected',
           admin_notes: adminNotes,
-          approved_by: action === 'approve' ? user.id : null,
+          approved_by: action === 'approve' ? 'admin' : null,
           approved_at: action === 'approve' ? new Date().toISOString() : null
         })
         .eq('id', depositId);
@@ -281,10 +275,13 @@ const Admin = () => {
             status: 'active'
           });
 
-        if (investmentError) throw investmentError;
+        if (investmentError) {
+          console.error('Investment creation error:', investmentError);
+          throw new Error(`Failed to create investment: ${investmentError.message}`);
+        }
 
         // Create notification for user
-        await supabase
+        const { error: notificationError } = await supabase
           .from('notifications')
           .insert({
             user_id: deposit.user_id,
@@ -292,9 +289,13 @@ const Admin = () => {
             message: `Your deposit of $${deposit.amount} has been approved and your investment is now active.`,
             type: 'success'
           });
+
+        if (notificationError) {
+          console.error('Notification error:', notificationError);
+        }
       } else {
         // Create notification for rejection
-        await supabase
+        const { error: notificationError } = await supabase
           .from('notifications')
           .insert({
             user_id: deposit.user_id,
@@ -302,7 +303,14 @@ const Admin = () => {
             message: `Your deposit of $${deposit.amount} has been rejected. ${adminNotes || 'Please contact support for more information.'}`,
             type: 'error'
           });
+
+        if (notificationError) {
+          console.error('Notification error:', notificationError);
+        }
       }
+
+      // Log the action
+      console.log(`Admin ${action}d deposit ${depositId} for user ${deposit.user_id} amount $${deposit.amount}`);
 
       toast({
         title: "Success",
@@ -315,7 +323,7 @@ const Admin = () => {
       console.error('Error handling deposit:', error);
       toast({
         title: "Error",
-        description: "Failed to process deposit",
+        description: error.message || "Failed to process deposit",
         variant: "destructive"
       });
     }
@@ -462,10 +470,12 @@ const Admin = () => {
   const handleWithdrawalAction = async (withdrawalId: string, action: 'approve' | 'reject') => {
     try {
       const withdrawal = withdrawals.find(w => w.id === withdrawalId);
-      if (!withdrawal) return;
+      if (!withdrawal) {
+        throw new Error('Withdrawal not found');
+      }
 
       // Update withdrawal status
-      const { error } = await supabase
+      const { error: withdrawalError } = await supabase
         .from('withdrawals')
         .update({
           status: action === 'approve' ? 'completed' : 'rejected',
@@ -475,10 +485,13 @@ const Admin = () => {
         })
         .eq('id', withdrawalId);
 
-      if (error) throw error;
+      if (withdrawalError) {
+        console.error('Withdrawal update error:', withdrawalError);
+        throw new Error(`Failed to update withdrawal: ${withdrawalError.message}`);
+      }
 
       // Create notification for user
-      await supabase
+      const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
           user_id: withdrawal.user_id,
@@ -488,6 +501,13 @@ const Admin = () => {
             : `Your withdrawal of $${withdrawal.amount} has been rejected. ${adminNotes || 'Please contact support for more information.'}`,
           type: action === 'approve' ? 'success' : 'error'
         });
+
+      if (notificationError) {
+        console.error('Notification error:', notificationError);
+      }
+
+      // Log the action
+      console.log(`Admin ${action}d withdrawal ${withdrawalId} for user ${withdrawal.user_id} amount $${withdrawal.amount}`);
 
       toast({
         title: "Success",
@@ -500,7 +520,63 @@ const Admin = () => {
       console.error('Error handling withdrawal:', error);
       toast({
         title: "Error",
-        description: "Failed to process withdrawal",
+        description: error.message || "Failed to process withdrawal",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleInvestmentAction = async (investmentId: string, action: 'approve' | 'reject') => {
+    try {
+      const investment = investments.find(i => i.id === investmentId);
+      if (!investment) {
+        throw new Error('Investment not found');
+      }
+
+      // Update investment status
+      const { error: investmentError } = await supabase
+        .from('investments')
+        .update({
+          status: action === 'approve' ? 'active' : 'rejected'
+        })
+        .eq('id', investmentId);
+
+      if (investmentError) {
+        console.error('Investment update error:', investmentError);
+        throw new Error(`Failed to update investment: ${investmentError.message}`);
+      }
+
+      // Create notification for user
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: investment.user_id,
+          title: `Investment ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+          message: action === 'approve' 
+            ? `Your investment of $${investment.amount} has been approved and is now active.`
+            : `Your investment of $${investment.amount} has been rejected. ${adminNotes || 'Please contact support for more information.'}`,
+          type: action === 'approve' ? 'success' : 'error'
+        });
+
+      if (notificationError) {
+        console.error('Notification error:', notificationError);
+      }
+
+      // Log the action
+      console.log(`Admin ${action}d investment ${investmentId} for user ${investment.user_id} amount $${investment.amount}`);
+
+      toast({
+        title: "Success",
+        description: `Investment ${action === 'approve' ? 'approved' : 'rejected'} successfully`
+      });
+
+      setAdminNotes('');
+      fetchAdminData();
+    } catch (error) {
+      console.error('Error handling investment:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to process investment",
         variant: "destructive"
       });
     }
