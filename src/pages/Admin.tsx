@@ -236,7 +236,15 @@ const Admin = () => {
   const handleDepositAction = async (depositId: string, action: 'approve' | 'reject') => {
     try {
       const deposit = deposits.find(d => d.id === depositId);
-      if (!deposit) return;
+      if (!deposit) {
+        throw new Error('Deposit not found');
+      }
+
+      // Get current user (admin)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Admin not authenticated');
+      }
 
       // Update deposit status
       const { error: depositError } = await supabase
@@ -244,12 +252,15 @@ const Admin = () => {
         .update({
           status: action === 'approve' ? 'approved' : 'rejected',
           admin_notes: adminNotes,
-          approved_by: action === 'approve' ? 'admin' : null,
+          approved_by: action === 'approve' ? user.id : null,
           approved_at: action === 'approve' ? new Date().toISOString() : null
         })
         .eq('id', depositId);
 
-      if (depositError) throw depositError;
+      if (depositError) {
+        console.error('Deposit update error:', depositError);
+        throw new Error(`Failed to update deposit: ${depositError.message}`);
+      }
 
       // If approved, create investment
       if (action === 'approve') {
