@@ -8,6 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CardDescription } from '@/components/ui/card';
 import { Users, DollarSign, TrendingUp, Activity, Eye, Shield, Check, X, Clock, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +35,14 @@ const Admin = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [newNote, setNewNote] = useState({ userId: '', title: '', content: '' });
   const [editingNote, setEditingNote] = useState(null);
+  
+  // Balance adjustment state
+  const [selectedUser, setSelectedUser] = useState<string>('');
+  const [adjustmentAmount, setAdjustmentAmount] = useState<string>('');
+  const [adjustmentReason, setAdjustmentReason] = useState<string>('');
+  const [showBalanceModal, setShowBalanceModal] = useState(false);
+  const [userBalances, setUserBalances] = useState<any[]>([]);
+  const [balanceAdjustments, setBalanceAdjustments] = useState<any[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -281,6 +291,19 @@ const Admin = () => {
       setDeposits(depositsWithProfiles || []);
       setWithdrawals(withdrawalsWithProfiles || []);
 
+      // Fetch balance adjustments
+      const { data: balanceAdjustmentsData, error: balanceAdjustmentsError } = await supabase
+        .from('balance_adjustments')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (balanceAdjustmentsError) {
+        console.error('Error fetching balance adjustments:', balanceAdjustmentsError);
+      } else {
+        setBalanceAdjustments(balanceAdjustmentsData || []);
+      }
+
       console.log('Admin data updated - Pending deposits:', pendingDepositsCount, 'Pending withdrawals:', pendingWithdrawalsCount);
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -305,6 +328,16 @@ const Admin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('Admin not authenticated');
+      }
+
+      // Check if user has admin role
+      const { data: hasAdminRole } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin'
+      });
+
+      if (!hasAdminRole) {
+        throw new Error('Access denied: Admin role required');
       }
 
       // Validate UUID format for deposit ID
@@ -688,6 +721,130 @@ const Admin = () => {
     }
   };
 
+  // Balance adjustment functions
+  const handleBalanceAdjustment = async () => {
+    try {
+      if (!selectedUser || !adjustmentAmount || !adjustmentReason) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      const amount = parseFloat(adjustmentAmount);
+      if (isNaN(amount) || amount === 0) {
+        throw new Error('Please enter a valid adjustment amount');
+      }
+
+      // Get current admin user ID and verify role
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Admin not authenticated');
+      }
+
+      const { data: hasAdminRole } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin'
+      });
+
+      if (!hasAdminRole) {
+        throw new Error('Access denied: Admin role required');
+      }
+
+      // Get current user balance
+      const { data: currentBalance, error: balanceError } = await supabase
+        .from('user_balances')
+        .select('balance')
+        .eq('user_id', selectedUser)
+        .maybeSingle();
+
+      if (balanceError) {
+        throw new Error(`Failed to fetch user balance: ${balanceError.message}`);
+      }
+
+      const previousBalance = currentBalance?.balance || 0;
+      const newBalance = Number(previousBalance) + amount;
+
+      if (newBalance < 0) {
+        throw new Error('Adjustment would result in negative balance');
+      }
+
+      // Update or insert user balance
+      const { error: updateError } = await supabase
+        .from('user_balances')
+        .upsert({
+          user_id: selectedUser,
+          balance: newBalance
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (updateError) {
+        throw new Error(`Failed to update balance: ${updateError.message}`);
+      }
+
+      // Log the adjustment
+      const { error: logError } = await supabase
+        .from('balance_adjustments')
+        .insert({
+          user_id: selectedUser,
+          admin_id: user.id,
+          previous_balance: previousBalance,
+          new_balance: newBalance,
+          adjustment_amount: amount,
+          reason: adjustmentReason
+        });
+
+      if (logError) {
+        console.error('Failed to log balance adjustment:', logError);
+      }
+
+      // Create notification for user
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: selectedUser,
+          title: 'Balance Adjustment',
+          message: `Your account balance has been ${amount > 0 ? 'increased' : 'decreased'} by $${Math.abs(amount)}. Reason: ${adjustmentReason}`,
+          type: 'info'
+        });
+
+      if (notificationError) {
+        console.error('Notification error:', notificationError);
+      }
+
+      // Log admin activity
+      await logAdminActivity(
+        'balance_adjustment',
+        'user_balances',
+        selectedUser,
+        previousBalance.toString(),
+        newBalance.toString(),
+        selectedUser,
+        amount,
+        adjustmentReason
+      );
+
+      toast({
+        title: "Success",
+        description: `Balance adjusted successfully. New balance: $${newBalance}`
+      });
+
+      // Reset form
+      setSelectedUser('');
+      setAdjustmentAmount('');
+      setAdjustmentReason('');
+      setShowBalanceModal(false);
+      
+      // Refresh data
+      fetchAdminData();
+    } catch (error) {
+      console.error('Error adjusting balance:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to adjust balance",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -733,12 +890,13 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="investments">Investments</TabsTrigger>
+            <TabsTrigger value="balance">Balance</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
           </TabsList>
@@ -1274,6 +1432,121 @@ const Admin = () => {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Balance Management Tab */}
+          <TabsContent value="balance" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Balance Management</h2>
+              <Button onClick={() => setShowBalanceModal(true)}>
+                Adjust User Balance
+              </Button>
+            </div>
+
+            {/* Balance Adjustment Modal */}
+            <Dialog open={showBalanceModal} onOpenChange={setShowBalanceModal}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Adjust User Balance</DialogTitle>
+                  <DialogDescription>
+                    Manually adjust a user's account balance. Enter a positive number to add funds or negative to subtract.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="user-select">Select User</Label>
+                    <select
+                      id="user-select"
+                      value={selectedUser}
+                      onChange={(e) => setSelectedUser(e.target.value)}
+                      className="w-full mt-1 p-2 border rounded-md"
+                    >
+                      <option value="">Select a user...</option>
+                      {users.map((user) => (
+                        <option key={user.user_id} value={user.user_id}>
+                          {user.first_name} {user.last_name} ({user.user_id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="adjustment-amount">Adjustment Amount ($)</Label>
+                    <Input
+                      id="adjustment-amount"
+                      type="number"
+                      step="0.01"
+                      value={adjustmentAmount}
+                      onChange={(e) => setAdjustmentAmount(e.target.value)}
+                      placeholder="e.g., 100 or -50"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="adjustment-reason">Reason (Required)</Label>
+                    <Textarea
+                      id="adjustment-reason"
+                      value={adjustmentReason}
+                      onChange={(e) => setAdjustmentReason(e.target.value)}
+                      placeholder="Explain the reason for this adjustment..."
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowBalanceModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleBalanceAdjustment}>
+                    Apply Adjustment
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Recent Balance Adjustments */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Balance Adjustments</CardTitle>
+                <CardDescription>
+                  History of manual balance adjustments made by administrators
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>User</TableHead>
+                      <TableHead>Previous Balance</TableHead>
+                      <TableHead>Adjustment</TableHead>
+                      <TableHead>New Balance</TableHead>
+                      <TableHead>Reason</TableHead>
+                      <TableHead>Admin</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {balanceAdjustments.map((adjustment) => (
+                      <TableRow key={adjustment.id}>
+                        <TableCell>
+                          {new Date(adjustment.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {users.find(u => u.user_id === adjustment.user_id)?.first_name || 'Unknown'} {users.find(u => u.user_id === adjustment.user_id)?.last_name || ''}
+                        </TableCell>
+                        <TableCell>${adjustment.previous_balance}</TableCell>
+                        <TableCell className={adjustment.adjustment_amount > 0 ? 'text-green-600' : 'text-red-600'}>
+                          {adjustment.adjustment_amount > 0 ? '+' : ''}${adjustment.adjustment_amount}
+                        </TableCell>
+                        <TableCell>${adjustment.new_balance}</TableCell>
+                        <TableCell>{adjustment.reason}</TableCell>
+                        <TableCell>
+                          {users.find(u => u.user_id === adjustment.admin_id)?.first_name || 'Admin'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           </TabsContent>
