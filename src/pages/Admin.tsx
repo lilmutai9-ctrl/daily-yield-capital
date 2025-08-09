@@ -301,13 +301,25 @@ const Admin = () => {
         throw new Error('Deposit not found');
       }
 
-      // Update deposit status with admin session (no need for user auth check)
+      // Get current admin user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Admin not authenticated');
+      }
+
+      // Validate UUID format for deposit ID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(depositId)) {
+        throw new Error('Invalid deposit ID format');
+      }
+
+      // Update deposit status with proper admin UUID
       const { error: depositError } = await supabase
         .from('deposits')
         .update({
           status: action === 'approve' ? 'approved' : 'rejected',
-          admin_notes: adminNotes,
-          approved_by: action === 'approve' ? 'admin' : null,
+          admin_notes: adminNotes || null,
+          approved_by: action === 'approve' ? user.id : null,
           approved_at: action === 'approve' ? new Date().toISOString() : null
         })
         .eq('id', depositId);
