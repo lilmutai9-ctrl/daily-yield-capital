@@ -486,6 +486,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ensure_admin_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
