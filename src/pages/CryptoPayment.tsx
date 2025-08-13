@@ -44,6 +44,7 @@ const CryptoPayment = () => {
   const tier = searchParams.get('tier');
   const amount = searchParams.get('amount');
   const rate = searchParams.get('rate');
+  const duration = searchParams.get('duration');
 
   useEffect(() => {
     checkUser();
@@ -72,7 +73,7 @@ const CryptoPayment = () => {
   };
 
   const handlePaymentComplete = async () => {
-    if (!tier || !amount || !rate) {
+    if (!tier || !amount || !rate || !duration) {
       toast({
         title: "Error",
         description: "Invalid investment parameters",
@@ -83,14 +84,17 @@ const CryptoPayment = () => {
 
     setLoading(true);
     try {
-      // Create a deposit record instead of direct investment
+      // Create a deposit record with investment details
       const { error } = await supabase
         .from('deposits')
         .insert({
           user_id: user.id,
           amount: parseFloat(amount),
           payment_method: 'Cryptocurrency',
-          status: 'pending'
+          status: 'pending',
+          plan_name: `${tier} Plan`,
+          daily_rate: parseFloat(rate),
+          duration_days: parseInt(duration)
         });
 
       if (error) throw error;

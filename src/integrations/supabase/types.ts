@@ -123,9 +123,12 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           created_at: string
+          daily_rate: number | null
+          duration_days: number | null
           id: string
           payment_method: string
           payment_proof: string | null
+          plan_name: string | null
           status: string
           updated_at: string
           user_id: string
@@ -136,9 +139,12 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string
+          daily_rate?: number | null
+          duration_days?: number | null
           id?: string
           payment_method: string
           payment_proof?: string | null
+          plan_name?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -149,9 +155,12 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string
+          daily_rate?: number | null
+          duration_days?: number | null
           id?: string
           payment_method?: string
           payment_proof?: string | null
+          plan_name?: string | null
           status?: string
           updated_at?: string
           user_id?: string
