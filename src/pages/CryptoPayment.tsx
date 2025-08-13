@@ -6,33 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Copy, ExternalLink, Bitcoin, Zap, Wallet, Info } from 'lucide-react';
-
-const paymentMethods = [
-  {
-    name: 'Bitcoin (BTC)',
-    address: '1G34ANDa8vBWrUFd3Pz8aopxuYCcgfQ6kk',
-    icon: Bitcoin,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200'
-  },
-  {
-    name: 'Ethereum (ETH)',
-    address: '0xd11334f91e89eef052dd2d6feb401f45c890639f',
-    icon: Zap,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200'
-  },
-  {
-    name: 'USDT (TRC20)',
-    address: 'TPdhkjKLtYgVMDJKJGzaGgHZLcDjJsBx5J',
-    icon: Wallet,
-    color: 'text-green-500',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200'
-  }
-];
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const CryptoPayment = () => {
   const [user, setUser] = useState<any>(null);
@@ -40,11 +14,40 @@ const CryptoPayment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const { settings } = useSiteSettings();
   
   const tier = searchParams.get('tier');
   const amount = searchParams.get('amount');
   const rate = searchParams.get('rate');
   const duration = searchParams.get('duration');
+
+  // Dynamic payment methods using settings
+  const paymentMethods = [
+    {
+      name: 'Bitcoin (BTC)',
+      address: settings.bitcoin_address,
+      icon: Bitcoin,
+      color: 'text-orange-500',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200'
+    },
+    {
+      name: 'Ethereum (ETH)',
+      address: settings.ethereum_address,
+      icon: Zap,
+      color: 'text-blue-500',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200'
+    },
+    {
+      name: 'USDT (TRC20)',
+      address: settings.usdt_address,
+      icon: Wallet,
+      color: 'text-green-500',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200'
+    }
+  ];
 
   useEffect(() => {
     checkUser();

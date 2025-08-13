@@ -36,6 +36,10 @@ const Admin = () => {
   const [newNote, setNewNote] = useState({ userId: '', title: '', content: '' });
   const [editingNote, setEditingNote] = useState(null);
   
+  // Site settings state
+  const [siteSettings, setSiteSettings] = useState<any[]>([]);
+  const [editingSettings, setEditingSettings] = useState<any>({});
+  
   // Balance adjustment state
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [adjustmentAmount, setAdjustmentAmount] = useState<string>('');
@@ -50,6 +54,7 @@ const Admin = () => {
     checkAdminAccess();
     fetchAdminData();
     fetchUserNotes();
+    fetchSiteSettings();
     setupRealtimeSubscriptions();
   }, []);
 
@@ -512,6 +517,52 @@ const Admin = () => {
     }
   };
 
+  const fetchSiteSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .order('setting_key');
+
+      if (error) throw error;
+      setSiteSettings(data || []);
+      
+      // Initialize editing settings with current values
+      const editingObj = {};
+      data?.forEach(setting => {
+        editingObj[setting.setting_key] = setting.setting_value;
+      });
+      setEditingSettings(editingObj);
+    } catch (error) {
+      console.error('Error fetching site settings:', error);
+    }
+  };
+
+  const updateSiteSetting = async (settingKey: string, newValue: string) => {
+    try {
+      const { error } = await supabase
+        .from('site_settings')
+        .update({ setting_value: newValue })
+        .eq('setting_key', settingKey);
+
+      if (error) throw error;
+
+      toast({
+        title: "Setting Updated",
+        description: `${settingKey} has been updated successfully`
+      });
+
+      fetchSiteSettings();
+    } catch (error) {
+      console.error('Error updating site setting:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update setting",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCreateNote = async () => {
     if (!newNote.userId || !newNote.title || !newNote.content) {
       toast({
@@ -921,7 +972,7 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
@@ -930,6 +981,7 @@ const Admin = () => {
             <TabsTrigger value="balance">Balance</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -1578,6 +1630,125 @@ const Admin = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Site Settings</CardTitle>
+                <CardDescription>
+                  Manage contact details and payment addresses. Changes will reflect across the entire website.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Contact Settings */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Contact Information</h3>
+                    {siteSettings
+                      .filter(setting => ['support_email', 'support_phone', 'telegram_link'].includes(setting.setting_key))
+                      .map((setting) => (
+                        <div key={setting.setting_key} className="space-y-2">
+                          <Label htmlFor={setting.setting_key}>
+                            {setting.setting_description}
+                          </Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id={setting.setting_key}
+                              value={editingSettings[setting.setting_key] || ''}
+                              onChange={(e) => setEditingSettings(prev => ({
+                                ...prev,
+                                [setting.setting_key]: e.target.value
+                              }))}
+                              placeholder={setting.setting_value}
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => updateSiteSetting(setting.setting_key, editingSettings[setting.setting_key])}
+                              disabled={editingSettings[setting.setting_key] === setting.setting_value}
+                            >
+                              Update
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* Payment Settings */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Payment Addresses</h3>
+                    {siteSettings
+                      .filter(setting => ['bitcoin_address', 'ethereum_address', 'usdt_address'].includes(setting.setting_key))
+                      .map((setting) => (
+                        <div key={setting.setting_key} className="space-y-2">
+                          <Label htmlFor={setting.setting_key}>
+                            {setting.setting_description}
+                          </Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id={setting.setting_key}
+                              value={editingSettings[setting.setting_key] || ''}
+                              onChange={(e) => setEditingSettings(prev => ({
+                                ...prev,
+                                [setting.setting_key]: e.target.value
+                              }))}
+                              placeholder={setting.setting_value}
+                              className="font-mono text-sm"
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => updateSiteSetting(setting.setting_key, editingSettings[setting.setting_key])}
+                              disabled={editingSettings[setting.setting_key] === setting.setting_value}
+                            >
+                              Update
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* Company Settings */}
+                  <div className="space-y-4 md:col-span-2">
+                    <h3 className="text-lg font-semibold">Company Information</h3>
+                    {siteSettings
+                      .filter(setting => ['company_name', 'company_description'].includes(setting.setting_key))
+                      .map((setting) => (
+                        <div key={setting.setting_key} className="space-y-2">
+                          <Label htmlFor={setting.setting_key}>
+                            {setting.setting_description}
+                          </Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id={setting.setting_key}
+                              value={editingSettings[setting.setting_key] || ''}
+                              onChange={(e) => setEditingSettings(prev => ({
+                                ...prev,
+                                [setting.setting_key]: e.target.value
+                              }))}
+                              placeholder={setting.setting_value}
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => updateSiteSetting(setting.setting_key, editingSettings[setting.setting_key])}
+                              disabled={editingSettings[setting.setting_key] === setting.setting_value}
+                            >
+                              Update
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                  <p className="text-sm">
+                    <strong>Note:</strong> Changes to these settings will be reflected immediately across all pages 
+                    including the Support page, Payment page, and any other areas where contact or payment information is displayed.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

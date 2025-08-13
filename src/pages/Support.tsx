@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MessageCircle, Phone, Mail, Clock, HeadphonesIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Support = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ const Support = () => {
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { settings } = useSiteSettings();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +86,7 @@ const Support = () => {
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-muted-foreground mb-4">Get instant answers to your questions</p>
-              <Button className="w-full" onClick={() => window.open('https://t.me/daily_yield_capital', '_blank')}>Start Chat</Button>
+              <Button className="w-full" onClick={() => window.open(settings.telegram_link, '_blank')}>Start Chat</Button>
               <p className="text-xs text-green-400 mt-2">● Online - Average response: 30 seconds</p>
             </CardContent>
           </Card>
@@ -96,7 +98,7 @@ const Support = () => {
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-muted-foreground mb-4">Speak directly with our experts</p>
-              <div className="font-mono text-lg font-bold mb-2">+1 (762) 203-5587</div>
+              <div className="font-mono text-lg font-bold mb-2">{settings.support_phone}</div>
               <p className="text-xs text-muted-foreground">24/7 International Support</p>
             </CardContent>
           </Card>
@@ -108,7 +110,7 @@ const Support = () => {
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-muted-foreground mb-4">Detailed support for complex issues</p>
-              <div className="font-mono text-sm mb-2">dailyyieldcapital@gmail.com</div>
+              <div className="font-mono text-sm mb-2">{settings.support_email}</div>
               <p className="text-xs text-muted-foreground">Response within 1 hour</p>
             </CardContent>
           </Card>
@@ -211,25 +213,25 @@ const Support = () => {
               <CardContent>
                 <div className="space-y-4">
                   <button 
-                    onClick={() => window.open('https://t.me/daily_yield_capital', '_blank')}
+                    onClick={() => window.open(settings.telegram_link, '_blank')}
                     className="w-full text-left p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
                   >
                     How to make a deposit?
                   </button>
                   <button 
-                    onClick={() => window.open('https://t.me/daily_yield_capital', '_blank')}
+                    onClick={() => window.open(settings.telegram_link, '_blank')}
                     className="w-full text-left p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
                   >
                     How to withdraw funds?
                   </button>
                   <button 
-                    onClick={() => window.open('https://t.me/daily_yield_capital', '_blank')}
+                    onClick={() => window.open(settings.telegram_link, '_blank')}
                     className="w-full text-left p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
                   >
                     Account verification help
                   </button>
                   <button 
-                    onClick={() => window.open('https://t.me/daily_yield_capital', '_blank')}
+                    onClick={() => window.open(settings.telegram_link, '_blank')}
                     className="w-full text-left p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
                   >
                     Trading strategies guide
