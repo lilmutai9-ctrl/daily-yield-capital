@@ -324,11 +324,35 @@ const Admin = () => {
         throw new Error('Deposit not found');
       }
 
-      // Get current admin user ID
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Admin not authenticated');
+      // Ensure authenticated admin session and refresh token if near expiry
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !session.user) {
+        toast({
+          title: "Session expired",
+          description: "Please log in again to continue",
+          variant: "destructive"
+        });
+        navigate('/auth');
+        return;
       }
+
+      let activeSession = session;
+      const now = Math.floor(Date.now() / 1000);
+      if (activeSession.expires_at && activeSession.expires_at <= now + 15) {
+        const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError || !refreshed.session) {
+          toast({
+            title: "Session expired",
+            description: "Please log in again to continue",
+            variant: "destructive"
+          });
+          navigate('/auth');
+          return;
+        }
+        activeSession = refreshed.session;
+      }
+
+      const user = activeSession.user;
 
       // Check if user has admin role with fallback
       const { data: hasAdminRole, error: roleError } = await supabase.rpc('has_role', {
