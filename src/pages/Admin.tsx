@@ -65,6 +65,18 @@ const Admin = () => {
       navigate('/admin-access');
       return;
     }
+
+    // Require an authenticated Supabase session for all admin actions
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || !session.user) {
+      toast({
+        title: "Login required",
+        description: "Please sign in to continue",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
   };
 
   const setupRealtimeSubscriptions = () => {
