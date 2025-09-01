@@ -17,6 +17,7 @@ import AdminAccess from "./pages/AdminAccess";
 import Testimonials from "./pages/Testimonials";
 import NotFound from "./pages/NotFound";
 import { Navigation } from "./components/Navigation";
+import { FloatingSupportButton } from "./components/FloatingSupportButton";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <FloatingSupportButton />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
