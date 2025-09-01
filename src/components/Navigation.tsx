@@ -11,6 +11,7 @@ export const Navigation = () => {
     { name: 'Home', path: '/', id: 'home' },
     { name: 'Investment Plans', path: '/', id: 'investment-tiers' },
     { name: 'Calculator', path: '/', id: 'calculator' },
+    { name: 'Trading Bot', path: '/trading-simulation', id: 'trading' },
     { name: 'Testimonials', path: '/testimonials', id: 'testimonials' },
     { name: 'FAQ', path: '/', id: 'faq' },
     { name: 'Support', path: '/support', id: 'support' },
@@ -25,6 +26,9 @@ export const Navigation = () => {
       } else {
         window.location.href = `/#${item.id}`;
       }
+    } else if (item.path !== '/') {
+      // Navigate to other pages
+      window.location.href = item.path;
     }
     setIsOpen(false);
   };
