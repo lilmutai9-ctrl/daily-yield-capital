@@ -14,6 +14,7 @@ import { Users, DollarSign, TrendingUp, Activity, Eye, Shield, Check, X, Clock, 
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
+import InvestmentMaturityProcessor from '@/components/InvestmentMaturityProcessor';
 
 const Admin = () => {
   const [loading, setLoading] = useState(true);
@@ -972,7 +973,7 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="deposits">Deposits</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
@@ -981,6 +982,7 @@ const Admin = () => {
             <TabsTrigger value="balance">Balance</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="system">System</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -1632,6 +1634,58 @@ const Admin = () => {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="system" className="space-y-6">
+            <div className="grid gap-6">
+              <InvestmentMaturityProcessor />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5" />
+                    System Status
+                  </CardTitle>
+                  <CardDescription>
+                    Monitor system health and automated processes
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center justify-between p-4 bg-success/10 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Investment Processing</p>
+                        <p className="text-xs text-muted-foreground">Automated hourly</p>
+                      </div>
+                      <Badge variant="outline" className="bg-success/20 text-success">
+                        Active
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Earnings Calculation</p>
+                        <p className="text-xs text-muted-foreground">Every 6 hours</p>
+                      </div>
+                      <Badge variant="outline" className="bg-blue-100 text-blue-700">
+                        Active
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium">Database Health</p>
+                        <p className="text-xs text-muted-foreground">Real-time monitoring</p>
+                      </div>
+                      <Badge variant="outline" className="bg-purple-100 text-purple-700">
+                        Healthy
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Settings Tab */}

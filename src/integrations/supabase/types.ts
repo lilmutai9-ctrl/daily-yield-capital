@@ -522,6 +522,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_investment_earnings: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       ensure_admin_exists: {
         Args: Record<PropertyKey, never>
         Returns: undefined
