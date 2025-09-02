@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createChart, IChartApi, ISeriesApi, Time, CandlestickData, LineData } from 'lightweight-charts';
+import { createChart } from 'lightweight-charts';
 import { Badge } from '@/components/ui/badge';
 import { Activity } from 'lucide-react';
 
 interface CandleData {
-  time: Time;
+  time: number;
   open: number;
   high: number;
   low: number;
@@ -13,7 +13,7 @@ interface CandleData {
 
 const RealtimeForexChart = () => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chart = useRef<IChartApi | null>(null);
+  const chart = useRef<any>(null);
   const candlestickSeries = useRef<any>(null);
   const movingAverageSeries = useRef<any>(null);
   const upperBandSeries = useRef<any>(null);
@@ -46,7 +46,7 @@ const RealtimeForexChart = () => {
     const close = prices[prices.length - 1];
 
     return {
-      time: timestamp as Time,
+      time: timestamp,
       open: parseFloat(open.toFixed(5)),
       high: parseFloat(high.toFixed(5)),
       low: parseFloat(low.toFixed(5)),
@@ -55,8 +55,8 @@ const RealtimeForexChart = () => {
   };
 
   // Calculate moving average
-  const calculateMA = (data: CandleData[], period: number = 20): LineData[] => {
-    const result: LineData[] = [];
+  const calculateMA = (data: CandleData[], period: number = 20) => {
+    const result: any[] = [];
     for (let i = period - 1; i < data.length; i++) {
       const sum = data.slice(i - period + 1, i + 1).reduce((acc, candle) => acc + candle.close, 0);
       const average = sum / period;
@@ -71,8 +71,8 @@ const RealtimeForexChart = () => {
   // Calculate Bollinger Bands
   const calculateBollingerBands = (data: CandleData[], period: number = 20, multiplier: number = 2) => {
     const ma = calculateMA(data, period);
-    const upper: LineData[] = [];
-    const lower: LineData[] = [];
+    const upper: any[] = [];
+    const lower: any[] = [];
 
     for (let i = period - 1; i < data.length; i++) {
       const slice = data.slice(i - period + 1, i + 1);
@@ -127,31 +127,64 @@ const RealtimeForexChart = () => {
     });
 
     // Add series using the correct API
-    candlestickSeries.current = (chart.current as any).addCandlestickSeries({
-      upColor: '#10b981',
-      downColor: '#ef4444',
-      borderDownColor: '#ef4444',
-      borderUpColor: '#10b981',
-      wickDownColor: '#ef4444',
-      wickUpColor: '#10b981',
-    });
+    try {
+      candlestickSeries.current = chart.current.addCandlestickSeries({
+        upColor: '#10b981',
+        downColor: '#ef4444',
+        borderDownColor: '#ef4444',
+        borderUpColor: '#10b981',
+        wickDownColor: '#ef4444',
+        wickUpColor: '#10b981',
+      });
+    } catch (e) {
+      console.log('Fallback to basic series creation');
+      // Fallback if addCandlestickSeries doesn't exist
+      candlestickSeries.current = chart.current.addSeries('Candlestick', {
+        upColor: '#10b981',
+        downColor: '#ef4444',
+        borderDownColor: '#ef4444',
+        borderUpColor: '#10b981',
+        wickDownColor: '#ef4444',
+        wickUpColor: '#10b981',
+      });
+    }
 
-    movingAverageSeries.current = (chart.current as any).addLineSeries({
-      color: '#3b82f6',
-      lineWidth: 2,
-    });
+    try {
+      movingAverageSeries.current = chart.current.addLineSeries({
+        color: '#3b82f6',
+        lineWidth: 2,
+      });
 
-    upperBandSeries.current = (chart.current as any).addLineSeries({
-      color: '#8b5cf6',
-      lineWidth: 1,
-      lineStyle: 2,
-    });
+      upperBandSeries.current = chart.current.addLineSeries({
+        color: '#8b5cf6',
+        lineWidth: 1,
+        lineStyle: 2,
+      });
 
-    lowerBandSeries.current = (chart.current as any).addLineSeries({
-      color: '#8b5cf6',
-      lineWidth: 1,
-      lineStyle: 2,
-    });
+      lowerBandSeries.current = chart.current.addLineSeries({
+        color: '#8b5cf6',
+        lineWidth: 1,
+        lineStyle: 2,
+      });
+    } catch (e) {
+      console.log('Fallback to basic line series creation');
+      movingAverageSeries.current = chart.current.addSeries('Line', {
+        color: '#3b82f6',
+        lineWidth: 2,
+      });
+
+      upperBandSeries.current = chart.current.addSeries('Line', {
+        color: '#8b5cf6',
+        lineWidth: 1,
+        lineStyle: 2,
+      });
+
+      lowerBandSeries.current = chart.current.addSeries('Line', {
+        color: '#8b5cf6',
+        lineWidth: 1,
+        lineStyle: 2,
+      });
+    }
 
     // Generate initial historical data
     const initialData: CandleData[] = [];
@@ -179,18 +212,18 @@ const RealtimeForexChart = () => {
     try {
       const markers = [
         {
-          time: (Date.now() - 180000) as Time,
-          position: 'belowBar' as const,
+          time: Date.now() - 180000,
+          position: 'belowBar',
           color: '#10b981',
-          shape: 'arrowUp' as const,
+          shape: 'arrowUp',
           text: 'BUY',
           size: 1
         },
         {
-          time: (Date.now() - 120000) as Time,
-          position: 'aboveBar' as const,
+          time: Date.now() - 120000,
+          position: 'aboveBar',
           color: '#ef4444',
-          shape: 'arrowDown' as const,
+          shape: 'arrowDown',
           text: 'SELL',
           size: 1
         }
@@ -262,7 +295,7 @@ const RealtimeForexChart = () => {
               const position = isBuy ? 'belowBar' : 'aboveBar';
               const shape = isBuy ? 'arrowUp' : 'arrowDown';
               const markers = [{
-                time: now as Time,
+                time: now,
                 position: position,
                 color: isBuy ? '#10b981' : '#ef4444',
                 shape: shape,
