@@ -46,7 +46,7 @@ const RealtimeForexChart = () => {
     const close = prices[prices.length - 1];
 
     return {
-      time: timestamp,
+      time: timestamp, // Use timestamp directly as number (seconds)
       open: parseFloat(open.toFixed(5)),
       high: parseFloat(high.toFixed(5)),
       low: parseFloat(low.toFixed(5)),
@@ -97,6 +97,8 @@ const RealtimeForexChart = () => {
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
+    console.log('Initializing chart...');
+
     // Initialize chart
     chart.current = createChart(chartContainerRef.current, {
       width: chartContainerRef.current.clientWidth,
@@ -126,6 +128,8 @@ const RealtimeForexChart = () => {
       },
     });
 
+    console.log('Chart created:', !!chart.current);
+
     // Add series using the correct v5 API
     try {
       candlestickSeries.current = chart.current.addCandlestickSeries({
@@ -153,6 +157,8 @@ const RealtimeForexChart = () => {
         lineWidth: 1,
         lineStyle: 2,
       });
+
+      console.log('Series created successfully');
     } catch (e) {
       console.error('Error creating chart series:', e);
       return;
@@ -160,31 +166,45 @@ const RealtimeForexChart = () => {
 
     // Generate initial historical data
     const initialData: CandleData[] = [];
-    let currentTime = Date.now() - 3600000; // 1 hour ago
+    let currentTime = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago in seconds
     let price = 1.0850;
+
+    console.log('Generating initial data...');
 
     for (let i = 0; i < 180; i++) { // 3 hours of 1-minute candles
       const candle = generateCandle(price, currentTime);
       initialData.push(candle);
       price = candle.close;
-      currentTime += 60000; // 1 minute intervals
+      currentTime += 60; // 1 minute intervals in seconds
     }
 
-    setData(initialData);
-    candlestickSeries.current.setData(initialData);
+    console.log('Initial data generated:', initialData.length, 'candles');
+    console.log('Sample candle:', initialData[0]);
 
-    // Calculate and set indicators
-    const { ma, upper, lower } = calculateBollingerBands(initialData);
+    setData(initialData);
     
-    movingAverageSeries.current.setData(ma);
-    upperBandSeries.current.setData(upper);
-    lowerBandSeries.current.setData(lower);
+    try {
+      candlestickSeries.current.setData(initialData);
+      console.log('Candlestick data set successfully');
+
+      // Calculate and set indicators
+      const { ma, upper, lower } = calculateBollingerBands(initialData);
+      console.log('Indicators calculated - MA:', ma.length, 'Upper:', upper.length, 'Lower:', lower.length);
+      
+      movingAverageSeries.current.setData(ma);
+      upperBandSeries.current.setData(upper);
+      lowerBandSeries.current.setData(lower);
+      
+      console.log('All indicators set successfully');
+    } catch (e) {
+      console.error('Error setting data:', e);
+    }
 
     // Add some trade markers
     try {
       const markers = [
         {
-          time: Date.now() - 180000,
+          time: Math.floor(Date.now() / 1000) - 180,
           position: 'belowBar',
           color: '#10b981',
           shape: 'arrowUp',
@@ -192,7 +212,7 @@ const RealtimeForexChart = () => {
           size: 1
         },
         {
-          time: Date.now() - 120000,
+          time: Math.floor(Date.now() / 1000) - 120,
           position: 'aboveBar',
           color: '#ef4444',
           shape: 'arrowDown',
@@ -201,6 +221,7 @@ const RealtimeForexChart = () => {
         }
       ];
       candlestickSeries.current.setMarkers(markers);
+      console.log('Markers set successfully');
     } catch (e) {
       console.log('Markers not supported in this version');
     }
@@ -217,6 +238,7 @@ const RealtimeForexChart = () => {
     window.addEventListener('resize', handleResize);
 
     return () => {
+      console.log('Cleaning up chart...');
       window.removeEventListener('resize', handleResize);
       if (chart.current) {
         chart.current.remove();
@@ -226,17 +248,24 @@ const RealtimeForexChart = () => {
 
   // Update chart in real-time
   useEffect(() => {
+    console.log('Setting up real-time updates, data length:', data.length);
+    
     const interval = setInterval(() => {
-      if (!candlestickSeries.current || data.length === 0) return;
+      if (!candlestickSeries.current || data.length === 0) {
+        console.log('Skipping update - missing series or data');
+        return;
+      }
 
-      const now = Date.now();
+      const now = Math.floor(Date.now() / 1000); // Convert to seconds
       const lastCandle = data[data.length - 1];
-      const timeDiff = now - (lastCandle.time as number);
+      const timeDiff = now - lastCandle.time;
+
+      console.log('Updating chart - time diff:', timeDiff);
 
       setData(prevData => {
         let newData = [...prevData];
 
-        if (timeDiff >= 60000) {
+        if (timeDiff >= 60) {
           // Create new candle every minute
           const newCandle = generateCandle(lastCandle.close, now);
           newData.push(newCandle);
@@ -245,20 +274,28 @@ const RealtimeForexChart = () => {
           setPriceChange(change);
           setCurrentPrice(newCandle.close);
 
+          console.log('New candle created:', newCandle);
+
           // Keep only last 180 candles
           if (newData.length > 180) {
             newData = newData.slice(-180);
           }
 
           // Update series
-          candlestickSeries.current.setData(newData);
+          try {
+            candlestickSeries.current.setData(newData);
 
-          // Recalculate indicators
-          const { ma, upper, lower } = calculateBollingerBands(newData);
-          
-          movingAverageSeries.current.setData(ma);
-          upperBandSeries.current.setData(upper);
-          lowerBandSeries.current.setData(lower);
+            // Recalculate indicators
+            const { ma, upper, lower } = calculateBollingerBands(newData);
+            
+            movingAverageSeries.current.setData(ma);
+            upperBandSeries.current.setData(upper);
+            lowerBandSeries.current.setData(lower);
+
+            console.log('Chart updated with new data');
+          } catch (e) {
+            console.error('Error updating chart:', e);
+          }
 
           // Occasionally add new trade markers
           if (Math.random() > 0.8) {
@@ -276,7 +313,7 @@ const RealtimeForexChart = () => {
               }];
               candlestickSeries.current.setMarkers(markers);
             } catch (e) {
-              // Markers not supported
+              console.log('Error setting markers:', e);
             }
           }
         } else {
@@ -292,7 +329,12 @@ const RealtimeForexChart = () => {
           const change = updatedCandle.close - prevData[prevData.length - 1].close;
           setPriceChange(change);
           setCurrentPrice(updatedCandle.close);
-          candlestickSeries.current.update(updatedCandle);
+          
+          try {
+            candlestickSeries.current.update(updatedCandle);
+          } catch (e) {
+            console.error('Error updating current candle:', e);
+          }
         }
 
         return newData;
