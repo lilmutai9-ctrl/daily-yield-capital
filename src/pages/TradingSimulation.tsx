@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, Activity, Bot, DollarSign } from 'lucide-react';
+import RealtimeForexChart from '@/components/RealtimeForexChart';
 
 interface Trade {
   id: string;
@@ -239,14 +240,7 @@ const TradingSimulation = () => {
 
               <TabsContent value="forex" className="space-y-6">
                 <Card className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold">EUR/USD Live Chart</h3>
-                    <Badge variant="secondary" className="bg-success/20 text-success animate-pulse">
-                      <Activity className="h-3 w-3 mr-1" />
-                      Live
-                    </Badge>
-                  </div>
-                  <MockChart symbol="EUR/USD" price={forexPrice} isUp={Math.random() > 0.5} />
+                  <RealtimeForexChart />
                 </Card>
 
                 {/* Trade Logs */}
