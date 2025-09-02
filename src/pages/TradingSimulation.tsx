@@ -27,19 +27,23 @@ interface PortfolioItem {
 }
 
 const TradingSimulation = () => {
-  const [totalProfit, setTotalProfit] = useState(12547.89);
-  const [profitToday, setProfitToday] = useState(1247.32);
+  const [profitToday, setProfitToday] = useState(847532.89);
+  const [activeTrades, setActiveTrades] = useState(247);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [aiMessages, setAiMessages] = useState<string[]>([]);
   const [newsItems, setNewsItems] = useState<string[]>([]);
   const [forexPrice, setForexPrice] = useState(1.0850);
   const [cryptoPrice, setCryptoPrice] = useState(43250);
+  const [aiAnalysisCount, setAiAnalysisCount] = useState(1247);
+  const [executedToday, setExecutedToday] = useState(3821);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([
-    { symbol: 'BTC', name: 'Bitcoin', amount: 0.5, currentPrice: 43250, profit: 2150.50, profitPercent: 5.2 },
-    { symbol: 'ETH', name: 'Ethereum', amount: 3.2, currentPrice: 2650, profit: 850.30, profitPercent: 3.8 },
-    { symbol: 'SOL', name: 'Solana', amount: 25, currentPrice: 98.5, profit: 445.75, profitPercent: 4.1 },
-    { symbol: 'ADA', name: 'Cardano', amount: 1500, currentPrice: 0.52, profit: 125.20, profitPercent: 2.1 },
-    { symbol: 'DOT', name: 'Polkadot', amount: 80, currentPrice: 7.85, profit: 95.60, profitPercent: 1.8 }
+    { symbol: 'BTC', name: 'Bitcoin', amount: 2847.5, currentPrice: 67420, profit: 18420.50, profitPercent: 12.4 },
+    { symbol: 'ETH', name: 'Ethereum', amount: 15234.2, currentPrice: 3850, profit: 24750.30, profitPercent: 8.7 },
+    { symbol: 'SOL', name: 'Solana', amount: 98750, currentPrice: 178.5, profit: 14445.75, profitPercent: 15.2 },
+    { symbol: 'ADA', name: 'Cardano', amount: 2847500, currentPrice: 0.68, profit: 8925.20, profitPercent: 7.3 },
+    { symbol: 'DOT', name: 'Polkadot', amount: 45680, currentPrice: 8.95, profit: 6795.60, profitPercent: 9.8 },
+    { symbol: 'AVAX', name: 'Avalanche', amount: 12450, currentPrice: 42.30, profit: 7234.45, profitPercent: 11.1 },
+    { symbol: 'LINK', name: 'Chainlink', amount: 8970, currentPrice: 18.75, profit: 5687.80, profitPercent: 6.9 }
   ]);
 
   const newsTickerItems = [
@@ -54,14 +58,22 @@ const TradingSimulation = () => {
   ];
 
   const aiStrategyMessages = [
-    "AI detected bullish breakout pattern on EUR/USD",
-    "Trailing stop applied to BTC position",
-    "RSI oversold signal triggered on SOL",
-    "Support level confirmed at $43,200 for Bitcoin",
-    "Fibonacci retracement indicates potential reversal",
-    "Volume surge detected in ETH markets",
-    "Moving average crossover signal on GBP/JPY",
-    "Risk management protocol activated"
+    "Deep learning model detected 94.7% bullish pattern on BTC/USD - executing multi-layer position",
+    "Quantum analysis confirms EUR/USD reversal - deploying algorithmic hedge strategy",
+    "Neural network identified arbitrage opportunity across 12 exchanges - profit margin 2.3%", 
+    "Machine learning sentiment analysis: 87% bullish crypto market - increasing position sizes",
+    "AI risk management: Adjusting stop-loss levels based on volatility prediction models",
+    "Advanced pattern recognition: Head and shoulders formation detected - shorting positions initiated",
+    "High-frequency trading algorithm executed 1,247 micro-transactions in 3.2 seconds",
+    "Predictive analytics indicate 73% probability of EUR breakout within 4 hours",
+    "Multi-timeframe analysis confirms golden cross formation - long positions activated",
+    "AI portfolio rebalancing: Redistributing $2.4M across optimal asset allocation",
+    "Momentum indicators align with volume analysis - executing swing trade strategy",
+    "Cross-market correlation analysis reveals hedge opportunity - deploying capital",
+    "Real-time news sentiment processing: Fed dovish signals detected - adjusting positions",
+    "Fibonacci retracement levels confirm support at $67,200 - scaling into position",
+    "Options flow analysis indicates institutional accumulation - following smart money",
+    "Technical confluence at major resistance - preparing breakout or rejection strategy"
   ];
 
   // Mock Chart Component
@@ -115,6 +127,21 @@ const TradingSimulation = () => {
     const interval = setInterval(() => {
       setForexPrice(prev => prev + (Math.random() - 0.5) * 0.001);
       setCryptoPrice(prev => prev + (Math.random() - 0.5) * 100);
+      
+      // Update active trades count
+      setActiveTrades(prev => {
+        const change = Math.floor(Math.random() * 20) - 10;
+        return Math.max(150, Math.min(350, prev + change));
+      });
+      
+      // Update AI analysis count
+      setAiAnalysisCount(prev => prev + Math.floor(Math.random() * 50 + 10));
+      
+      // Update executed trades count
+      setExecutedToday(prev => prev + Math.floor(Math.random() * 15 + 5));
+      
+      // Update today's profit
+      setProfitToday(prev => prev + Math.random() * 5000 + 1000);
     }, 2000);
     return () => clearInterval(interval);
   }, []);
@@ -139,8 +166,7 @@ const TradingSimulation = () => {
       setTrades(prev => [newTrade, ...prev.slice(0, 9)]);
       
       if (newTrade.status === 'executed') {
-        setTotalProfit(prev => prev + newTrade.profit);
-        setProfitToday(prev => prev + newTrade.profit * 0.1);
+        setProfitToday(prev => prev + newTrade.profit);
       }
     };
 
@@ -148,12 +174,12 @@ const TradingSimulation = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Generate AI messages
+  // Generate AI messages faster
   useEffect(() => {
     const interval = setInterval(() => {
       const message = aiStrategyMessages[Math.floor(Math.random() * aiStrategyMessages.length)];
       setAiMessages(prev => [message, ...prev.slice(0, 4)]);
-    }, 8000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -168,11 +194,11 @@ const TradingSimulation = () => {
     const interval = setInterval(() => {
       setPortfolio(prev => prev.map(item => ({
         ...item,
-        currentPrice: item.currentPrice * (1 + (Math.random() - 0.5) * 0.02),
-        profit: item.profit + (Math.random() - 0.3) * 10,
-        profitPercent: item.profitPercent + (Math.random() - 0.4) * 0.5
+        currentPrice: item.currentPrice * (1 + (Math.random() - 0.5) * 0.03),
+        profit: item.profit + (Math.random() - 0.2) * 500,
+        profitPercent: item.profitPercent + (Math.random() - 0.4) * 1.5
       })));
-    }, 5000);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, []);
@@ -191,26 +217,14 @@ const TradingSimulation = () => {
         </div>
 
         {/* Profit Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card className="p-6 bg-success/10 border-success/20">
             <div className="flex items-center gap-3">
-              <DollarSign className="h-8 w-8 text-success" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Profit</p>
-                <p className="text-2xl font-bold text-success animate-pulse">
-                  ${totalProfit.toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-accent/10 border-accent/20">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-8 w-8 text-accent" />
+              <TrendingUp className="h-8 w-8 text-success" />
               <div>
                 <p className="text-sm text-muted-foreground">Today's Profit</p>
-                <p className="text-2xl font-bold text-accent animate-pulse">
-                  ${profitToday.toFixed(2)}
+                <p className="text-3xl font-bold text-success animate-pulse">
+                  ${profitToday.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </p>
               </div>
             </div>
@@ -221,8 +235,8 @@ const TradingSimulation = () => {
               <Activity className="h-8 w-8 text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">Active Trades</p>
-                <p className="text-2xl font-bold text-primary">
-                  {trades.filter(t => t.status === 'pending').length}
+                <p className="text-3xl font-bold text-primary animate-pulse">
+                  {activeTrades}
                 </p>
               </div>
             </div>
@@ -310,10 +324,10 @@ const TradingSimulation = () => {
                                 <p className="text-xs text-muted-foreground">{item.name}</p>
                               </div>
                             </td>
-                            <td className="text-right p-2">{item.amount}</td>
-                            <td className="text-right p-2">${item.currentPrice.toFixed(2)}</td>
-                            <td className="text-right p-2 text-success">
-                              +${item.profit.toFixed(2)}
+                            <td className="text-right p-2 font-mono">{item.amount.toLocaleString()}</td>
+                            <td className="text-right p-2 font-mono">${item.currentPrice.toLocaleString()}</td>
+                            <td className="text-right p-2 text-success font-mono">
+                              +${item.profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                             </td>
                             <td className="text-right p-2">
                               <Badge variant="outline" className="text-success border-success/30">
@@ -354,23 +368,23 @@ const TradingSimulation = () => {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Win Rate</span>
-                  <span className="text-sm font-medium text-success">87.3%</span>
+                  <span className="text-sm font-medium text-success">94.7%</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Total Trades</span>
-                  <span className="text-sm font-medium">1,247</span>
+                  <span className="text-sm font-medium">{executedToday.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Avg Profit</span>
-                  <span className="text-sm font-medium text-success">$125.50</span>
+                  <span className="text-sm font-medium text-success">$2,847.50</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Max Drawdown</span>
-                  <span className="text-sm font-medium">-2.1%</span>
+                  <span className="text-sm font-medium">-1.3%</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Sharp Ratio</span>
-                  <span className="text-sm font-medium text-accent">2.4</span>
+                  <span className="text-sm font-medium text-accent">3.8</span>
                 </div>
               </div>
             </Card>
@@ -379,24 +393,31 @@ const TradingSimulation = () => {
               <div className="text-center">
                 <Bot className="h-8 w-8 text-success mx-auto mb-2" />
                 <h4 className="font-semibold text-success mb-1">AI Status</h4>
-                <p className="text-xs text-muted-foreground mb-3">Currently analyzing 47 market signals</p>
-                <div className="flex justify-center">
+                <p className="text-xs text-muted-foreground mb-3">
+                  Analyzing {aiAnalysisCount.toLocaleString()} market signals • {executedToday} trades executed today
+                </p>
+                <div className="flex justify-center space-x-1">
                   <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-success rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-success rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                 </div>
               </div>
             </Card>
           </div>
         </div>
 
-        {/* News Ticker */}
+        {/* Enhanced News Ticker */}
         <Card className="mt-8 p-4 bg-muted/30">
           <div className="flex items-center gap-4">
             <Badge className="bg-destructive text-destructive-foreground animate-pulse">LIVE</Badge>
             <div className="flex-1 overflow-hidden">
               <div className="animate-slide whitespace-nowrap text-sm">
                 {newsItems.map((news, index) => (
-                  <span key={index} className="mr-12">
+                  <span key={index} className="mr-12 inline-flex items-center gap-2">
+                    <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
                     📈 {news}
+                    <span className="text-success">• ${Math.floor(Math.random() * 50000 + 10000).toLocaleString()} profit •</span>
+                    <span className="text-primary">{Math.floor(Math.random() * 50 + 10)} trades executed</span>
                   </span>
                 ))}
               </div>
