@@ -1,64 +1,56 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
 import { Badge } from '@/components/ui/badge';
-import { Activity } from 'lucide-react';
-
-interface CandleData {
-  time: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-}
+import { Activity, TrendingUp, TrendingDown } from 'lucide-react';
 
 const RealtimeForexChart = () => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chart = useRef<any>(null);
-  const candlestickSeries = useRef<any>(null);
-  const movingAverageSeries = useRef<any>(null);
-  const upperBandSeries = useRef<any>(null);
-  const lowerBandSeries = useRef<any>(null);
+  const chartRef = useRef<any>(null);
+  const candlestickSeriesRef = useRef<any>(null);
+  const maSeriesRef = useRef<any>(null);
+  const upperBandRef = useRef<any>(null);
+  const lowerBandRef = useRef<any>(null);
   
   const [currentPrice, setCurrentPrice] = useState(1.0850);
-  const [data, setData] = useState<CandleData[]>([]);
-  const [priceChange, setPriceChange] = useState(0);
+  const [priceChange, setPriceChange] = useState(0.0012);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Generate realistic forex price movement
-  const generateNextPrice = (prevPrice: number, volatility: number = 0.0001): number => {
-    const change = (Math.random() - 0.5) * volatility * 2;
-    const trend = Math.sin(Date.now() / 100000) * 0.00005; // Subtle trend
-    return prevPrice + change + trend;
-  };
-
-  // Generate OHLC data for a candle
-  const generateCandle = (prevClose: number, timestamp: number): CandleData => {
-    const open = prevClose;
-    const volatility = 0.0002 + Math.random() * 0.0003;
+  // Generate realistic OHLC data
+  const generateCandleData = (baseTime: number, basePrice: number, count: number) => {
+    const data = [];
+    let currentTime = baseTime;
+    let price = basePrice;
     
-    // Generate prices for the candle period
-    const prices = [open];
-    for (let i = 1; i < 8; i++) {
-      prices.push(generateNextPrice(prices[prices.length - 1], volatility));
+    for (let i = 0; i < count; i++) {
+      const volatility = 0.0003;
+      const change = (Math.random() - 0.5) * volatility;
+      const trend = Math.sin(i / 20) * 0.0001; // Add subtle trend
+      
+      const open = price;
+      const close = price + change + trend;
+      const high = Math.max(open, close) + Math.random() * volatility * 0.5;
+      const low = Math.min(open, close) - Math.random() * volatility * 0.5;
+      
+      data.push({
+        time: currentTime,
+        open: parseFloat(open.toFixed(5)),
+        high: parseFloat(high.toFixed(5)),
+        low: parseFloat(low.toFixed(5)),
+        close: parseFloat(close.toFixed(5))
+      });
+      
+      price = close;
+      currentTime += 60; // 1 minute intervals
     }
     
-    const high = Math.max(...prices);
-    const low = Math.min(...prices);
-    const close = prices[prices.length - 1];
-
-    return {
-      time: timestamp, // Use timestamp directly as number (seconds)
-      open: parseFloat(open.toFixed(5)),
-      high: parseFloat(high.toFixed(5)),
-      low: parseFloat(low.toFixed(5)),
-      close: parseFloat(close.toFixed(5))
-    };
+    return data;
   };
 
   // Calculate moving average
-  const calculateMA = (data: CandleData[], period: number = 20) => {
-    const result: any[] = [];
+  const calculateMA = (data: any[], period: number = 20) => {
+    const result = [];
     for (let i = period - 1; i < data.length; i++) {
-      const sum = data.slice(i - period + 1, i + 1).reduce((acc, candle) => acc + candle.close, 0);
+      const sum = data.slice(i - period + 1, i + 1).reduce((acc, item) => acc + item.close, 0);
       const average = sum / period;
       result.push({
         time: data[i].time,
@@ -69,15 +61,15 @@ const RealtimeForexChart = () => {
   };
 
   // Calculate Bollinger Bands
-  const calculateBollingerBands = (data: CandleData[], period: number = 20, multiplier: number = 2) => {
+  const calculateBollingerBands = (data: any[], period: number = 20, multiplier: number = 2) => {
     const ma = calculateMA(data, period);
-    const upper: any[] = [];
-    const lower: any[] = [];
+    const upper = [];
+    const lower = [];
 
     for (let i = period - 1; i < data.length; i++) {
       const slice = data.slice(i - period + 1, i + 1);
-      const avg = slice.reduce((acc, candle) => acc + candle.close, 0) / period;
-      const variance = slice.reduce((acc, candle) => acc + Math.pow(candle.close - avg, 2), 0) / period;
+      const avg = slice.reduce((acc, item) => acc + item.close, 0) / period;
+      const variance = slice.reduce((acc, item) => acc + Math.pow(item.close - avg, 2), 0) / period;
       const stdDev = Math.sqrt(variance);
 
       upper.push({
@@ -91,298 +83,307 @@ const RealtimeForexChart = () => {
       });
     }
 
-    return { upper, lower, ma };
+    return { ma, upper, lower };
   };
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    console.log('Initializing chart...');
-
-    // Initialize chart
-    chart.current = createChart(chartContainerRef.current, {
-      width: chartContainerRef.current.clientWidth,
-      height: 400,
-      layout: {
-        background: { color: 'transparent' },
-        textColor: '#d1d5db',
-      },
-      grid: {
-        vertLines: { color: '#374151', style: 1, visible: true },
-        horzLines: { color: '#374151', style: 1, visible: true },
-      },
-      crosshair: {
-        mode: 1,
-      },
-      timeScale: {
-        timeVisible: true,
-        secondsVisible: true,
-        borderColor: '#485563',
-      },
-      rightPriceScale: {
-        borderColor: '#485563',
-        scaleMargins: {
-          top: 0.1,
-          bottom: 0.1,
+    try {
+      // Create chart with professional styling
+      const chart = createChart(chartContainerRef.current, {
+        width: chartContainerRef.current.clientWidth,
+        height: 400,
+        layout: {
+          background: { color: 'rgba(17, 24, 39, 0.95)' },
+          textColor: '#9CA3AF',
         },
-      },
-    });
-
-    console.log('Chart created:', !!chart.current);
-
-    // Add series using the correct v5 API
-    try {
-      candlestickSeries.current = chart.current.addCandlestickSeries({
-        upColor: '#10b981',
-        downColor: '#ef4444',
-        borderDownColor: '#ef4444',
-        borderUpColor: '#10b981',
-        wickDownColor: '#ef4444',
-        wickUpColor: '#10b981',
+        grid: {
+          vertLines: { 
+            color: 'rgba(55, 65, 81, 0.4)',
+            style: 1,
+            visible: true 
+          },
+          horzLines: { 
+            color: 'rgba(55, 65, 81, 0.4)',
+            style: 1,
+            visible: true 
+          },
+        },
+        crosshair: {
+          mode: 1,
+          vertLine: {
+            color: 'rgba(59, 130, 246, 0.5)',
+            labelBackgroundColor: '#3B82F6',
+          },
+          horzLine: {
+            color: 'rgba(59, 130, 246, 0.5)',
+            labelBackgroundColor: '#3B82F6',
+          },
+        },
+        timeScale: {
+          timeVisible: true,
+          secondsVisible: false,
+          borderColor: '#374151',
+          fixLeftEdge: true,
+          fixRightEdge: true,
+        },
+        rightPriceScale: {
+          borderColor: '#374151',
+          scaleMargins: {
+            top: 0.05,
+            bottom: 0.05,
+          },
+        },
       });
 
-      movingAverageSeries.current = chart.current.addLineSeries({
-        color: '#3b82f6',
+      chartRef.current = chart;
+
+      // Add candlestick series
+      const candlestickSeries = (chart as any).addCandlestickSeries({
+        upColor: '#10B981',
+        downColor: '#EF4444',
+        borderDownColor: '#EF4444',
+        borderUpColor: '#10B981',
+        wickDownColor: '#EF4444',
+        wickUpColor: '#10B981',
+        priceFormat: {
+          type: 'price',
+          precision: 5,
+          minMove: 0.00001,
+        },
+      });
+      candlestickSeriesRef.current = candlestickSeries;
+
+      // Add moving average line
+      const maSeries = (chart as any).addLineSeries({
+        color: '#3B82F6',
         lineWidth: 2,
+        title: 'MA(20)',
+        priceLineVisible: false,
+        lastValueVisible: false,
       });
+      maSeriesRef.current = maSeries;
 
-      upperBandSeries.current = chart.current.addLineSeries({
-        color: '#8b5cf6',
+      // Add Bollinger Bands
+      const upperBand = (chart as any).addLineSeries({
+        color: '#8B5CF6',
         lineWidth: 1,
         lineStyle: 2,
+        title: 'Upper BB',
+        priceLineVisible: false,
+        lastValueVisible: false,
       });
+      upperBandRef.current = upperBand;
 
-      lowerBandSeries.current = chart.current.addLineSeries({
-        color: '#8b5cf6',
+      const lowerBand = (chart as any).addLineSeries({
+        color: '#8B5CF6',
         lineWidth: 1,
         lineStyle: 2,
+        title: 'Lower BB',
+        priceLineVisible: false,
+        lastValueVisible: false,
       });
+      lowerBandRef.current = lowerBand;
 
-      console.log('Series created successfully');
-    } catch (e) {
-      console.error('Error creating chart series:', e);
-      return;
-    }
-
-    // Generate initial historical data
-    const initialData: CandleData[] = [];
-    let currentTime = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago in seconds
-    let price = 1.0850;
-
-    console.log('Generating initial data...');
-
-    for (let i = 0; i < 180; i++) { // 3 hours of 1-minute candles
-      const candle = generateCandle(price, currentTime);
-      initialData.push(candle);
-      price = candle.close;
-      currentTime += 60; // 1 minute intervals in seconds
-    }
-
-    console.log('Initial data generated:', initialData.length, 'candles');
-    console.log('Sample candle:', initialData[0]);
-
-    setData(initialData);
-    
-    try {
-      candlestickSeries.current.setData(initialData);
-      console.log('Candlestick data set successfully');
-
+      // Generate and set initial data
+      const now = Math.floor(Date.now() / 1000);
+      const startTime = now - (180 * 60); // 3 hours ago
+      const candleData = generateCandleData(startTime, 1.0850, 180);
+      
+      // Set candlestick data
+      candlestickSeries.setData(candleData);
+      
       // Calculate and set indicators
-      const { ma, upper, lower } = calculateBollingerBands(initialData);
-      console.log('Indicators calculated - MA:', ma.length, 'Upper:', upper.length, 'Lower:', lower.length);
-      
-      movingAverageSeries.current.setData(ma);
-      upperBandSeries.current.setData(upper);
-      lowerBandSeries.current.setData(lower);
-      
-      console.log('All indicators set successfully');
-    } catch (e) {
-      console.error('Error setting data:', e);
-    }
+      const { ma, upper, lower } = calculateBollingerBands(candleData);
+      maSeries.setData(ma);
+      upperBand.setData(upper);
+      lowerBand.setData(lower);
 
-    // Add some trade markers
-    try {
+      // Set current price
+      const lastCandle = candleData[candleData.length - 1];
+      setCurrentPrice(lastCandle.close);
+      setPriceChange(lastCandle.close - candleData[candleData.length - 2].close);
+
+      // Add trade markers
       const markers = [
         {
-          time: Math.floor(Date.now() / 1000) - 180,
+          time: now - 300,
           position: 'belowBar',
-          color: '#10b981',
+          color: '#10B981',
           shape: 'arrowUp',
           text: 'BUY',
-          size: 1
         },
         {
-          time: Math.floor(Date.now() / 1000) - 120,
+          time: now - 180,
           position: 'aboveBar',
-          color: '#ef4444',
+          color: '#EF4444',
           shape: 'arrowDown',
           text: 'SELL',
-          size: 1
+        },
+        {
+          time: now - 60,
+          position: 'belowBar',
+          color: '#10B981',
+          shape: 'arrowUp',
+          text: 'BUY',
         }
       ];
-      candlestickSeries.current.setMarkers(markers);
-      console.log('Markers set successfully');
-    } catch (e) {
-      console.log('Markers not supported in this version');
-    }
-
-    // Handle resize
-    const handleResize = () => {
-      if (chart.current && chartContainerRef.current) {
-        chart.current.applyOptions({
-          width: chartContainerRef.current.clientWidth,
-        });
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      console.log('Cleaning up chart...');
-      window.removeEventListener('resize', handleResize);
-      if (chart.current) {
-        chart.current.remove();
-      }
-    };
-  }, []);
-
-  // Update chart in real-time
-  useEffect(() => {
-    console.log('Setting up real-time updates, data length:', data.length);
-    
-    const interval = setInterval(() => {
-      if (!candlestickSeries.current || data.length === 0) {
-        console.log('Skipping update - missing series or data');
-        return;
+      
+      try {
+        candlestickSeries.setMarkers(markers);
+      } catch (e) {
+        console.log('Markers not supported');
       }
 
-      const now = Math.floor(Date.now() / 1000); // Convert to seconds
-      const lastCandle = data[data.length - 1];
-      const timeDiff = now - lastCandle.time;
+      // Fit the chart content
+      chart.timeScale().fitContent();
+      
+      setIsLoading(false);
 
-      console.log('Updating chart - time diff:', timeDiff);
+      // Handle resize
+      const handleResize = () => {
+        if (chartContainerRef.current) {
+          chart.applyOptions({
+            width: chartContainerRef.current.clientWidth,
+          });
+        }
+      };
 
-      setData(prevData => {
-        let newData = [...prevData];
+      window.addEventListener('resize', handleResize);
 
-        if (timeDiff >= 60) {
-          // Create new candle every minute
-          const newCandle = generateCandle(lastCandle.close, now);
-          newData.push(newCandle);
-          
-          const change = newCandle.close - lastCandle.close;
-          setPriceChange(change);
-          setCurrentPrice(newCandle.close);
+      // Real-time updates
+      const updateInterval = setInterval(() => {
+        if (!candlestickSeriesRef.current) return;
 
-          console.log('New candle created:', newCandle);
+        const currentTime = Math.floor(Date.now() / 1000);
+        const lastPrice = currentPrice;
+        const change = (Math.random() - 0.5) * 0.0002;
+        const newPrice = lastPrice + change;
+        
+        // Update current candle
+        const newCandle = {
+          time: currentTime - (currentTime % 60), // Round to minute
+          open: lastPrice,
+          high: Math.max(lastPrice, newPrice) + Math.random() * 0.0001,
+          low: Math.min(lastPrice, newPrice) - Math.random() * 0.0001,
+          close: newPrice
+        };
 
-          // Keep only last 180 candles
-          if (newData.length > 180) {
-            newData = newData.slice(-180);
-          }
-
-          // Update series
-          try {
-            candlestickSeries.current.setData(newData);
-
-            // Recalculate indicators
-            const { ma, upper, lower } = calculateBollingerBands(newData);
-            
-            movingAverageSeries.current.setData(ma);
-            upperBandSeries.current.setData(upper);
-            lowerBandSeries.current.setData(lower);
-
-            console.log('Chart updated with new data');
-          } catch (e) {
-            console.error('Error updating chart:', e);
-          }
-
-          // Occasionally add new trade markers
-          if (Math.random() > 0.8) {
-            try {
-              const isBuy = Math.random() > 0.5;
-              const position = isBuy ? 'belowBar' : 'aboveBar';
-              const shape = isBuy ? 'arrowUp' : 'arrowDown';
-              const markers = [{
-                time: now,
-                position: position,
-                color: isBuy ? '#10b981' : '#ef4444',
-                shape: shape,
-                text: isBuy ? 'BUY' : 'SELL',
-                size: 1
-              }];
-              candlestickSeries.current.setMarkers(markers);
-            } catch (e) {
-              console.log('Error setting markers:', e);
-            }
-          }
-        } else {
-          // Update current candle
-          const updatedCandle = {
-            ...lastCandle,
-            close: generateNextPrice(lastCandle.close, 0.0001),
-            high: Math.max(lastCandle.high, generateNextPrice(lastCandle.close, 0.0001)),
-            low: Math.min(lastCandle.low, generateNextPrice(lastCandle.close, 0.0001))
-          };
-          
-          newData[newData.length - 1] = updatedCandle;
-          const change = updatedCandle.close - prevData[prevData.length - 1].close;
-          setPriceChange(change);
-          setCurrentPrice(updatedCandle.close);
-          
-          try {
-            candlestickSeries.current.update(updatedCandle);
-          } catch (e) {
-            console.error('Error updating current candle:', e);
-          }
+        try {
+          candlestickSeriesRef.current.update(newCandle);
+          setCurrentPrice(newPrice);
+          setPriceChange(newPrice - lastPrice);
+        } catch (e) {
+          console.error('Error updating candle:', e);
         }
 
-        return newData;
-      });
-    }, 1000);
+        // Occasionally add new trade signals
+        if (Math.random() > 0.95) {
+          const isBuy = Math.random() > 0.5;
+          try {
+            const newMarkers = [{
+              time: currentTime,
+              position: isBuy ? 'belowBar' : 'aboveBar',
+              color: isBuy ? '#10B981' : '#EF4444',
+              shape: isBuy ? 'arrowUp' : 'arrowDown',
+              text: isBuy ? 'BUY' : 'SELL',
+            }];
+            candlestickSeriesRef.current.setMarkers(newMarkers);
+          } catch (e) {
+            console.log('Could not update markers');
+          }
+        }
+      }, 2000);
 
-    return () => clearInterval(interval);
-  }, [data]);
+      return () => {
+        clearInterval(updateInterval);
+        window.removeEventListener('resize', handleResize);
+        chart.remove();
+      };
+
+    } catch (error) {
+      console.error('Failed to create chart:', error);
+      setIsLoading(false);
+    }
+  }, []);
 
   const isPositive = priceChange >= 0;
+
+  if (isLoading) {
+    return (
+      <div className="w-full">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold">EUR/USD Live Chart</h3>
+          <Badge variant="secondary" className="animate-pulse">
+            Loading...
+          </Badge>
+        </div>
+        <div className="w-full h-[400px] bg-gray-900 rounded-lg border flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-muted-foreground">Initializing chart...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold">EUR/USD Live Chart</h3>
-        <div className="flex items-center gap-2">
+        <h3 className="text-xl font-semibold flex items-center gap-2">
+          <Activity className="h-5 w-5 text-primary" />
+          EUR/USD Live Chart
+        </h3>
+        <div className="flex items-center gap-3">
           <Badge variant="secondary" className="bg-success/20 text-success animate-pulse">
-            <Activity className="h-3 w-3 mr-1" />
+            <div className="w-2 h-2 bg-success rounded-full mr-2 animate-pulse"></div>
             Live
           </Badge>
           <div className="text-right">
-            <div className="text-2xl font-bold">{currentPrice.toFixed(5)}</div>
-            <div className={`text-sm ${isPositive ? 'text-success' : 'text-destructive'}`}>
+            <div className="text-2xl font-bold font-mono">
+              {currentPrice.toFixed(5)}
+            </div>
+            <div className={`text-sm flex items-center gap-1 ${isPositive ? 'text-success' : 'text-destructive'}`}>
+              {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               {isPositive ? '+' : ''}{(priceChange * 10000).toFixed(1)} pips
             </div>
-            <div className="text-xs text-muted-foreground">EUR/USD</div>
+            <div className="text-xs text-muted-foreground">Major Pair</div>
           </div>
         </div>
       </div>
       
       <div 
         ref={chartContainerRef}
-        className="w-full h-[400px] bg-card rounded-lg border"
-        style={{ position: 'relative' }}
+        className="w-full h-[400px] bg-gray-900 rounded-lg border border-gray-700 shadow-lg overflow-hidden"
+        style={{ minHeight: '400px', position: 'relative' }}
       />
       
-      <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+      <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+        <div className="flex items-center gap-6">
+          <span className="flex items-center gap-2">
+            <div className="w-3 h-0.5 bg-blue-500 rounded"></div>
             MA(20)
           </span>
-          <span className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+          <span className="flex items-center gap-2">
+            <div className="w-3 h-0.5 bg-purple-500 rounded border-dashed"></div>
             Bollinger Bands
           </span>
+          <span className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-success rounded-full"></div>
+            Buy Signal
+          </span>
+          <span className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-destructive rounded-full"></div>
+            Sell Signal
+          </span>
         </div>
-        <div>1-minute intervals • Live trading signals</div>
+        <div className="flex items-center gap-4">
+          <span>Spread: 0.8 pips</span>
+          <span>1-minute intervals</span>
+          <span className="text-success">Live Data</span>
+        </div>
       </div>
     </div>
   );
