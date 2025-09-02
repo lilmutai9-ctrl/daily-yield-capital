@@ -126,7 +126,7 @@ const RealtimeForexChart = () => {
       },
     });
 
-    // Add series using the correct API
+    // Add series using the correct v5 API
     try {
       candlestickSeries.current = chart.current.addCandlestickSeries({
         upColor: '#10b981',
@@ -136,20 +136,7 @@ const RealtimeForexChart = () => {
         wickDownColor: '#ef4444',
         wickUpColor: '#10b981',
       });
-    } catch (e) {
-      console.log('Fallback to basic series creation');
-      // Fallback if addCandlestickSeries doesn't exist
-      candlestickSeries.current = chart.current.addSeries('Candlestick', {
-        upColor: '#10b981',
-        downColor: '#ef4444',
-        borderDownColor: '#ef4444',
-        borderUpColor: '#10b981',
-        wickDownColor: '#ef4444',
-        wickUpColor: '#10b981',
-      });
-    }
 
-    try {
       movingAverageSeries.current = chart.current.addLineSeries({
         color: '#3b82f6',
         lineWidth: 2,
@@ -167,23 +154,8 @@ const RealtimeForexChart = () => {
         lineStyle: 2,
       });
     } catch (e) {
-      console.log('Fallback to basic line series creation');
-      movingAverageSeries.current = chart.current.addSeries('Line', {
-        color: '#3b82f6',
-        lineWidth: 2,
-      });
-
-      upperBandSeries.current = chart.current.addSeries('Line', {
-        color: '#8b5cf6',
-        lineWidth: 1,
-        lineStyle: 2,
-      });
-
-      lowerBandSeries.current = chart.current.addSeries('Line', {
-        color: '#8b5cf6',
-        lineWidth: 1,
-        lineStyle: 2,
-      });
+      console.error('Error creating chart series:', e);
+      return;
     }
 
     // Generate initial historical data
