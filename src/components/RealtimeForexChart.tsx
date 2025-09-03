@@ -89,9 +89,21 @@ const RealtimeForexChart = () => {
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    const initializeChart = async () => {
+    const initializeChart = () => {
       try {
-        console.log('Starting chart initialization...');
+        // Pre-generate data for faster initialization
+        const now = Math.floor(Date.now() / 1000);
+        const startTime = now - (180 * 60); // 3 hours ago
+        const candleData = generateCandleData(startTime, 1.0850, 180);
+        const ma = calculateMA(candleData);
+        const lastCandle = candleData[candleData.length - 1];
+        
+        // Set current price immediately
+        setCurrentPrice(lastCandle.close);
+        setPriceChange(0.0012);
+        
+        // Chart is ready to show, hide loading
+        setIsLoading(false);
         
         // Create chart with professional styling
         const chart = createChart(chartContainerRef.current!, {
@@ -127,7 +139,6 @@ const RealtimeForexChart = () => {
           },
         });
 
-        console.log('Chart created, adding series...');
         chartRef.current = chart;
 
         // Add candlestick series
@@ -148,29 +159,9 @@ const RealtimeForexChart = () => {
         });
         maSeriesRef.current = maSeries;
 
-        console.log('Series created, generating data...');
-
-        // Generate and set initial data
-        const now = Math.floor(Date.now() / 1000);
-        const startTime = now - (180 * 60); // 3 hours ago
-        const candleData = generateCandleData(startTime, 1.0850, 180);
-        
-        console.log('Generated', candleData.length, 'candles');
-        console.log('Sample data:', candleData[0]);
-        
-        // Set data
+        // Set data immediately
         candlestickSeries.setData(candleData);
-        
-        // Calculate and set MA
-        const ma = calculateMA(candleData);
         maSeries.setData(ma);
-
-        // Set current price
-        const lastCandle = candleData[candleData.length - 1];
-        setCurrentPrice(lastCandle.close);
-        setPriceChange(0.0012);
-
-        console.log('Data set successfully, fitting content...');
         
         // Fit the chart content
         chart.timeScale().fitContent();
@@ -216,7 +207,6 @@ const RealtimeForexChart = () => {
         window.addEventListener('resize', handleResize);
 
         return () => {
-          console.log('Cleaning up chart...');
           clearInterval(updateInterval);
           window.removeEventListener('resize', handleResize);
           if (chart) {
@@ -226,21 +216,12 @@ const RealtimeForexChart = () => {
 
       } catch (error) {
         console.error('Chart initialization failed:', error);
-      } finally {
-        // Always set loading to false
-        console.log('Setting loading to false...');
         setIsLoading(false);
       }
     };
 
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      initializeChart();
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    // Initialize immediately
+    initializeChart();
   }, []);
 
   const isPositive = priceChange >= 0;
