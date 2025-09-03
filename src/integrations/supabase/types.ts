@@ -400,6 +400,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trading_simulations: {
+        Row: {
+          active_trades: number
+          ai_trades_count: number
+          created_at: string
+          daily_profit: number
+          id: string
+          last_updated: string
+          simulation_date: string
+          total_profit: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_trades?: number
+          ai_trades_count?: number
+          created_at?: string
+          daily_profit?: number
+          id?: string
+          last_updated?: string
+          simulation_date?: string
+          total_profit?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_trades?: number
+          ai_trades_count?: number
+          created_at?: string
+          daily_profit?: number
+          id?: string
+          last_updated?: string
+          simulation_date?: string
+          total_profit?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_balances: {
         Row: {
           balance: number
@@ -546,6 +585,14 @@ export type Database = {
         Returns: boolean
       }
       process_matured_investments: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      reset_daily_simulation: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_simulation_profits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
