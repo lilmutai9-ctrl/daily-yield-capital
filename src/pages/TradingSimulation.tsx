@@ -37,10 +37,10 @@ interface SimulationData {
 
 const TradingSimulation = () => {
   const [simulationData, setSimulationData] = useState<SimulationData>({
-    daily_profit: 0,
-    total_profit: 0,
-    active_trades: 5,
-    ai_trades_count: 0,
+    daily_profit: 95000 + Math.random() * 10000, // Start around $100k
+    total_profit: 500000 + Math.random() * 100000, // Start around $500k total
+    active_trades: 150 + Math.floor(Math.random() * 100), // 150-250 trades
+    ai_trades_count: 850 + Math.floor(Math.random() * 200), // 850-1050 trades
     last_updated: new Date().toISOString()
   });
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -51,7 +51,7 @@ const TradingSimulation = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
-  const [portfolio] = useState<PortfolioItem[]>([
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([
     { symbol: 'BTC', name: 'Bitcoin', amount: 2847.5, currentPrice: 67420, profit: 18420.50, profitPercent: 12.4 },
     { symbol: 'ETH', name: 'Ethereum', amount: 15234.2, currentPrice: 3850, profit: 24750.30, profitPercent: 8.7 },
     { symbol: 'SOL', name: 'Solana', amount: 98750, currentPrice: 178.5, profit: 14445.75, profitPercent: 15.2 },
@@ -122,10 +122,10 @@ const TradingSimulation = () => {
           .from('trading_simulations')
           .insert({
             user_id: user.id,
-            daily_profit: 0,
-            total_profit: 0,
-            active_trades: Math.floor(Math.random() * 5) + 3,
-            ai_trades_count: 0,
+            daily_profit: 95000 + Math.random() * 10000,
+            total_profit: 500000 + Math.random() * 100000,
+            active_trades: 150 + Math.floor(Math.random() * 100),
+            ai_trades_count: 850 + Math.floor(Math.random() * 200),
             simulation_date: new Date().toISOString().split('T')[0]
           });
 
@@ -146,9 +146,9 @@ const TradingSimulation = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Calculate small profit increment (every minute when active)
-      const profitIncrement = Math.random() * 50 + 25; // $25-75 per update
-      const aiTradeIncrement = Math.random() > 0.7 ? 1 : 0; // 30% chance of new AI trade
+      // Calculate larger profit increment for high-value trading
+      const profitIncrement = Math.random() * 2000 + 1000; // $1000-3000 per update
+      const aiTradeIncrement = Math.random() > 0.3 ? Math.floor(Math.random() * 5) + 1 : 0; // 70% chance of 1-5 new AI trades
 
       const newData = {
         daily_profit: simulationData.daily_profit + profitIncrement,
@@ -186,6 +186,21 @@ const TradingSimulation = () => {
     const interval = setInterval(() => {
       setForexPrice(prev => prev + (Math.random() - 0.5) * 0.001);
       setCryptoPrice(prev => prev + (Math.random() - 0.5) * 100);
+      
+      // Update crypto portfolio prices and profits
+      setPortfolio(prev => prev.map(item => {
+        const priceChange = (Math.random() - 0.5) * 0.05; // ±5% change
+        const newPrice = item.currentPrice * (1 + priceChange);
+        const newProfitPercent = item.profitPercent + (Math.random() - 0.5) * 2; // ±1% change
+        const newProfit = item.amount * newPrice * (newProfitPercent / 100);
+        
+        return {
+          ...item,
+          currentPrice: Math.max(0, newPrice),
+          profit: newProfit,
+          profitPercent: Math.max(0, newProfitPercent)
+        };
+      }));
     }, 2000);
     return () => clearInterval(interval);
   }, []);
@@ -212,8 +227,8 @@ const TradingSimulation = () => {
         type: types[Math.floor(Math.random() * types.length)],
         symbol: symbols[Math.floor(Math.random() * symbols.length)],
         price: Math.random() * 50000 + 1000,
-        amount: Math.random() * 10 + 0.1,
-        profit: Math.random() * 500 + 50,
+        amount: Math.random() * 100 + 10, // 10-110 lots for forex
+        profit: Math.random() * 5000 + 1000, // $1000-6000 profit
         timestamp: new Date(),
         status: Math.random() > 0.3 ? 'executed' : 'pending'
       };
@@ -497,14 +512,23 @@ const TradingSimulation = () => {
         <div className="mt-8 bg-card border rounded-lg p-4 overflow-hidden">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="h-4 w-4 text-accent" />
-            <span className="text-sm font-medium">Market News</span>
+            <span className="text-sm font-medium">Live Market News</span>
           </div>
-          <div className="animate-scroll">
-            <p className="text-sm text-muted-foreground whitespace-nowrap">
-              Fed rate hikes push USD higher against major currencies • Bitcoin surges past $43K as institutional adoption grows • 
-              ECB maintains dovish stance, EUR/USD under pressure • Ethereum upgrade boosts network efficiency by 40% • 
-              Gold retreats as dollar strength weighs on precious metals • Solana DeFi TVL reaches new all-time high of $2.5B
-            </p>
+          <div className="relative overflow-hidden">
+            <div className="animate-marquee whitespace-nowrap">
+              <span className="text-sm text-muted-foreground inline-block px-4">
+                🔴 BREAKING: Fed announces emergency rate cut of 0.75%, markets surge 3.2% • 
+                💎 Bitcoin breaks $70K resistance, institutional FOMO drives massive volume • 
+                📈 EUR/USD hits 6-month high as ECB signals hawkish pivot • 
+                🚀 Tesla stock soars 15% on AI breakthrough announcement • 
+                ⚡ Ethereum gas fees drop 90% after successful scaling upgrade • 
+                🏦 JPMorgan increases crypto exposure by $2.3B, cites "digital gold" narrative • 
+                📊 Unemployment drops to historic low of 2.8%, wage inflation concerns emerge • 
+                🛢️ Oil prices spike 8% as OPEC announces surprise production cuts • 
+                💰 Gold reaches new ATH of $2,450/oz amid geopolitical tensions • 
+                🌐 Chinese yuan strengthens against USD for 7th consecutive day •
+              </span>
+            </div>
           </div>
         </div>
       </div>

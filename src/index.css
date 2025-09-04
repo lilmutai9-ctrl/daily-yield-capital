@@ -61,7 +61,13 @@
     --shadow-card: 0 10px 30px hsl(215 28% 4% / 0.5);
     
     /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Marquee animation */
+  @keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
     --animation-bounce: bounce 1s infinite;
 
     --sidebar-background: 0 0% 98%;
