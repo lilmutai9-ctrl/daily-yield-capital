@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, Activity, Bot, DollarSign } from 'lucide-react';
 import RealtimeForexChart from '@/components/RealtimeForexChart';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Trade {
   id: string;
@@ -26,17 +27,31 @@ interface PortfolioItem {
   profitPercent: number;
 }
 
+interface SimulationData {
+  daily_profit: number;
+  total_profit: number;
+  active_trades: number;
+  ai_trades_count: number;
+  last_updated: string;
+}
+
 const TradingSimulation = () => {
-  const [profitToday, setProfitToday] = useState(847532.89);
-  const [activeTrades, setActiveTrades] = useState(247);
+  const [simulationData, setSimulationData] = useState<SimulationData>({
+    daily_profit: 0,
+    total_profit: 0,
+    active_trades: 5,
+    ai_trades_count: 0,
+    last_updated: new Date().toISOString()
+  });
   const [trades, setTrades] = useState<Trade[]>([]);
   const [aiMessages, setAiMessages] = useState<string[]>([]);
-  const [newsItems, setNewsItems] = useState<string[]>([]);
   const [forexPrice, setForexPrice] = useState(1.0850);
   const [cryptoPrice, setCryptoPrice] = useState(43250);
-  const [aiAnalysisCount, setAiAnalysisCount] = useState(1247);
-  const [executedToday, setExecutedToday] = useState(3821);
-  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([
+  const [executedToday, setExecutedToday] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+  
+  const [portfolio] = useState<PortfolioItem[]>([
     { symbol: 'BTC', name: 'Bitcoin', amount: 2847.5, currentPrice: 67420, profit: 18420.50, profitPercent: 12.4 },
     { symbol: 'ETH', name: 'Ethereum', amount: 15234.2, currentPrice: 3850, profit: 24750.30, profitPercent: 8.7 },
     { symbol: 'SOL', name: 'Solana', amount: 98750, currentPrice: 178.5, profit: 14445.75, profitPercent: 15.2 },
@@ -45,17 +60,6 @@ const TradingSimulation = () => {
     { symbol: 'AVAX', name: 'Avalanche', amount: 12450, currentPrice: 42.30, profit: 7234.45, profitPercent: 11.1 },
     { symbol: 'LINK', name: 'Chainlink', amount: 8970, currentPrice: 18.75, profit: 5687.80, profitPercent: 6.9 }
   ]);
-
-  const newsTickerItems = [
-    "Fed rate hikes push USD higher against major currencies",
-    "Bitcoin surges past $43K as institutional adoption grows",
-    "ECB maintains dovish stance, EUR/USD under pressure",
-    "Ethereum upgrade boosts network efficiency by 40%",
-    "Gold retreats as dollar strength weighs on precious metals",
-    "Solana DeFi TVL reaches new all-time high of $2.5B",
-    "Bank of Japan intervention speculation caps USD/JPY gains",
-    "Crypto market cap crosses $1.8 trillion milestone"
-  ];
 
   const aiStrategyMessages = [
     "Deep learning model detected 94.7% bullish pattern on BTC/USD - executing multi-layer position",
@@ -67,14 +71,169 @@ const TradingSimulation = () => {
     "High-frequency trading algorithm executed 1,247 micro-transactions in 3.2 seconds",
     "Predictive analytics indicate 73% probability of EUR breakout within 4 hours",
     "Multi-timeframe analysis confirms golden cross formation - long positions activated",
-    "AI portfolio rebalancing: Redistributing $2.4M across optimal asset allocation",
-    "Momentum indicators align with volume analysis - executing swing trade strategy",
-    "Cross-market correlation analysis reveals hedge opportunity - deploying capital",
-    "Real-time news sentiment processing: Fed dovish signals detected - adjusting positions",
-    "Fibonacci retracement levels confirm support at $67,200 - scaling into position",
-    "Options flow analysis indicates institutional accumulation - following smart money",
-    "Technical confluence at major resistance - preparing breakout or rejection strategy"
+    "AI portfolio rebalancing: Redistributing $2.4M across optimal asset allocation"
   ];
+
+  // Load or create simulation data
+  const loadSimulationData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      // First, update simulation profits based on time passed
+      await supabase.rpc('update_simulation_profits');
+      
+      // Reset daily data if it's a new day
+      await supabase.rpc('reset_daily_simulation');
+
+      // Get user's simulation data
+      const { data, error } = await supabase
+        .from('trading_simulations')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('simulation_date', new Date().toISOString().split('T')[0])
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+        console.error('Error loading simulation data:', error);
+        toast({
+          title: "Error loading data",
+          description: "Failed to load trading simulation data",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data) {
+        setSimulationData({
+          daily_profit: Number(data.daily_profit),
+          total_profit: Number(data.total_profit),
+          active_trades: data.active_trades,
+          ai_trades_count: data.ai_trades_count,
+          last_updated: data.last_updated
+        });
+        setExecutedToday(data.ai_trades_count);
+      } else {
+        // Create new simulation data for today
+        const { error: insertError } = await supabase
+          .from('trading_simulations')
+          .insert({
+            user_id: user.id,
+            daily_profit: 0,
+            total_profit: 0,
+            active_trades: Math.floor(Math.random() * 5) + 3,
+            ai_trades_count: 0,
+            simulation_date: new Date().toISOString().split('T')[0]
+          });
+
+        if (insertError) {
+          console.error('Error creating simulation data:', insertError);
+        }
+      }
+    } catch (error) {
+      console.error('Error in loadSimulationData:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update simulation data periodically (simulate profit growth)
+  const updateSimulationData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Calculate small profit increment (every minute when active)
+      const profitIncrement = Math.random() * 50 + 25; // $25-75 per update
+      const aiTradeIncrement = Math.random() > 0.7 ? 1 : 0; // 30% chance of new AI trade
+
+      const newData = {
+        daily_profit: simulationData.daily_profit + profitIncrement,
+        total_profit: simulationData.total_profit + profitIncrement,
+        ai_trades_count: simulationData.ai_trades_count + aiTradeIncrement,
+        last_updated: new Date().toISOString()
+      };
+
+      // Update database
+      const { error } = await supabase
+        .from('trading_simulations')
+        .update(newData)
+        .eq('user_id', user.id)
+        .eq('simulation_date', new Date().toISOString().split('T')[0]);
+
+      if (!error) {
+        setSimulationData(prev => ({
+          ...prev,
+          ...newData
+        }));
+        setExecutedToday(newData.ai_trades_count);
+      }
+    } catch (error) {
+      console.error('Error updating simulation data:', error);
+    }
+  };
+
+  // Initialize simulation data on component mount
+  useEffect(() => {
+    loadSimulationData();
+  }, []);
+
+  // Update prices periodically (visual only, not persistent)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setForexPrice(prev => prev + (Math.random() - 0.5) * 0.001);
+      setCryptoPrice(prev => prev + (Math.random() - 0.5) * 100);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update simulation data every 30 seconds
+  useEffect(() => {
+    if (isLoading) return;
+    
+    const interval = setInterval(() => {
+      updateSimulationData();
+    }, 30000); // 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [simulationData, isLoading]);
+
+  // Generate mock trades for display
+  useEffect(() => {
+    const generateTrade = () => {
+      const symbols = ['EUR/USD', 'GBP/JPY', 'BTC/USD', 'ETH/USD', 'SOL/USD'];
+      const types: Trade['type'][] = ['BUY', 'SELL', 'STOP_LOSS', 'TAKE_PROFIT'];
+      
+      const newTrade: Trade = {
+        id: Math.random().toString(36).substr(2, 9),
+        type: types[Math.floor(Math.random() * types.length)],
+        symbol: symbols[Math.floor(Math.random() * symbols.length)],
+        price: Math.random() * 50000 + 1000,
+        amount: Math.random() * 10 + 0.1,
+        profit: Math.random() * 500 + 50,
+        timestamp: new Date(),
+        status: Math.random() > 0.3 ? 'executed' : 'pending'
+      };
+
+      setTrades(prev => [newTrade, ...prev.slice(0, 9)]);
+    };
+
+    const interval = setInterval(generateTrade, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Generate AI messages
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const message = aiStrategyMessages[Math.floor(Math.random() * aiStrategyMessages.length)];
+      setAiMessages(prev => [message, ...prev.slice(0, 4)]);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Mock Chart Component
   const MockChart = ({ symbol, price, isUp }: { symbol: string; price: number; isUp: boolean }) => (
@@ -122,86 +281,16 @@ const TradingSimulation = () => {
     </div>
   );
 
-  // Update prices periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setForexPrice(prev => prev + (Math.random() - 0.5) * 0.001);
-      setCryptoPrice(prev => prev + (Math.random() - 0.5) * 100);
-      
-      // Update active trades count
-      setActiveTrades(prev => {
-        const change = Math.floor(Math.random() * 20) - 10;
-        return Math.max(150, Math.min(350, prev + change));
-      });
-      
-      // Update AI analysis count
-      setAiAnalysisCount(prev => prev + Math.floor(Math.random() * 50 + 10));
-      
-      // Update executed trades count
-      setExecutedToday(prev => prev + Math.floor(Math.random() * 15 + 5));
-      
-      // Update today's profit
-      setProfitToday(prev => prev + Math.random() * 5000 + 1000);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Generate AI trades
-  useEffect(() => {
-    const generateTrade = () => {
-      const symbols = ['EUR/USD', 'GBP/JPY', 'BTC/USD', 'ETH/USD', 'SOL/USD'];
-      const types: Trade['type'][] = ['BUY', 'SELL', 'STOP_LOSS', 'TAKE_PROFIT'];
-      
-      const newTrade: Trade = {
-        id: Math.random().toString(36).substr(2, 9),
-        type: types[Math.floor(Math.random() * types.length)],
-        symbol: symbols[Math.floor(Math.random() * symbols.length)],
-        price: Math.random() * 50000 + 1000,
-        amount: Math.random() * 10 + 0.1,
-        profit: Math.random() * 500 + 50,
-        timestamp: new Date(),
-        status: Math.random() > 0.3 ? 'executed' : 'pending'
-      };
-
-      setTrades(prev => [newTrade, ...prev.slice(0, 9)]);
-      
-      if (newTrade.status === 'executed') {
-        setProfitToday(prev => prev + newTrade.profit);
-      }
-    };
-
-    const interval = setInterval(generateTrade, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Generate AI messages faster
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const message = aiStrategyMessages[Math.floor(Math.random() * aiStrategyMessages.length)];
-      setAiMessages(prev => [message, ...prev.slice(0, 4)]);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Initialize news ticker
-  useEffect(() => {
-    setNewsItems(newsTickerItems);
-  }, []);
-
-  // Update portfolio periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPortfolio(prev => prev.map(item => ({
-        ...item,
-        currentPrice: item.currentPrice * (1 + (Math.random() - 0.5) * 0.03),
-        profit: item.profit + (Math.random() - 0.2) * 500,
-        profitPercent: item.profitPercent + (Math.random() - 0.4) * 1.5
-      })));
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pt-16 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading trading simulation...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pt-16">
@@ -223,8 +312,8 @@ const TradingSimulation = () => {
               <TrendingUp className="h-8 w-8 text-success" />
               <div>
                 <p className="text-sm text-muted-foreground">Today's Profit</p>
-                <p className="text-3xl font-bold text-success animate-pulse">
-                  ${profitToday.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                <p className="text-3xl font-bold text-success">
+                  ${simulationData.daily_profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
             </div>
@@ -235,8 +324,8 @@ const TradingSimulation = () => {
               <Activity className="h-8 w-8 text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">Active Trades</p>
-                <p className="text-3xl font-bold text-primary animate-pulse">
-                  {activeTrades}
+                <p className="text-3xl font-bold text-primary">
+                  {simulationData.active_trades}
                 </p>
               </div>
             </div>
@@ -375,8 +464,10 @@ const TradingSimulation = () => {
                   <span className="text-sm font-medium">{executedToday.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Avg Profit</span>
-                  <span className="text-sm font-medium text-success">$2,847.50</span>
+                  <span className="text-sm text-muted-foreground">Total Profit</span>
+                  <span className="text-sm font-medium text-success">
+                    ${simulationData.total_profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Max Drawdown</span>
@@ -393,37 +484,29 @@ const TradingSimulation = () => {
               <div className="text-center">
                 <Bot className="h-8 w-8 text-success mx-auto mb-2" />
                 <h4 className="font-semibold text-success mb-1">AI Status</h4>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Analyzing {aiAnalysisCount.toLocaleString()} market signals • {executedToday} trades executed today
-                </p>
-                <div className="flex justify-center space-x-1">
-                  <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-                  <div className="w-2 h-2 bg-success rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-success rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                </div>
+                <p className="text-sm text-muted-foreground mb-3">Actively trading</p>
+                <Badge variant="outline" className="text-success border-success/30">
+                  {simulationData.ai_trades_count} trades executed
+                </Badge>
               </div>
             </Card>
           </div>
         </div>
 
-        {/* Enhanced News Ticker */}
-        <Card className="mt-8 p-4 bg-muted/30">
-          <div className="flex items-center gap-4">
-            <Badge className="bg-destructive text-destructive-foreground animate-pulse">LIVE</Badge>
-            <div className="flex-1 overflow-hidden">
-              <div className="animate-slide whitespace-nowrap text-sm">
-                {newsItems.map((news, index) => (
-                  <span key={index} className="mr-12 inline-flex items-center gap-2">
-                    <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
-                    📈 {news}
-                    <span className="text-success">• ${Math.floor(Math.random() * 50000 + 10000).toLocaleString()} profit •</span>
-                    <span className="text-primary">{Math.floor(Math.random() * 50 + 10)} trades executed</span>
-                  </span>
-                ))}
-              </div>
-            </div>
+        {/* News Ticker */}
+        <div className="mt-8 bg-card border rounded-lg p-4 overflow-hidden">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="h-4 w-4 text-accent" />
+            <span className="text-sm font-medium">Market News</span>
           </div>
-        </Card>
+          <div className="animate-scroll">
+            <p className="text-sm text-muted-foreground whitespace-nowrap">
+              Fed rate hikes push USD higher against major currencies • Bitcoin surges past $43K as institutional adoption grows • 
+              ECB maintains dovish stance, EUR/USD under pressure • Ethereum upgrade boosts network efficiency by 40% • 
+              Gold retreats as dollar strength weighs on precious metals • Solana DeFi TVL reaches new all-time high of $2.5B
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
