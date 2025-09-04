@@ -15,7 +15,7 @@ import WalletGuide from "./pages/WalletGuide";
 import Admin from "./pages/Admin";
 import AdminAccess from "./pages/AdminAccess";
 import Testimonials from "./pages/Testimonials";
-import TradingSimulation from "./pages/TradingSimulation";
+import TradingTerminal from "./pages/TradingTerminal";
 import NotFound from "./pages/NotFound";
 import { Navigation } from "./components/Navigation";
 import { FloatingSupportButton } from "./components/FloatingSupportButton";
@@ -42,7 +42,7 @@ const App = () => (
           <Route path="/admin-access" element={<AdminAccess />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/testimonials" element={<Testimonials />} />
-          <Route path="/trading-simulation" element={<TradingSimulation />} />
+          <Route path="/trading-terminal" element={<TradingTerminal />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

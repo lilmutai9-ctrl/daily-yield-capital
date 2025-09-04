@@ -55,6 +55,14 @@ export const HeroSection = () => {
           </Button>
           
           <Button 
+            className="bg-gradient-to-r from-accent to-success hover:from-accent/90 hover:to-success/90 text-white border-0 px-12 py-6 text-xl transition-smooth hover:scale-105 shadow-elegant"
+            onClick={() => window.location.href = '/trading-terminal'}
+          >
+            <Shield className="mr-3 h-6 w-6" />
+            Live Trading Terminal
+          </Button>
+          
+          <Button 
             className="bg-secondary hover:bg-muted border border-accent text-accent px-12 py-6 text-xl transition-smooth hover:scale-105"
             onClick={() => window.location.hash = 'calculator'}
           >
