@@ -1,6 +1,7 @@
-import React from 'react';
-import { TrendingUp, Calculator, Shield } from 'lucide-react';
+import React, { useState } from 'react';
+import { TrendingUp, Calculator, Shield, DollarSign, Users, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import heroImage from '@/assets/hero-bg.jpg';
 
 export const HeroSection = () => {
@@ -103,37 +104,69 @@ export const HeroSection = () => {
         </div>
 
         
-        {/* Premium Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <div className="group glass-card rounded-2xl p-8 border border-primary/20 transition-bounce hover:scale-105 hover:border-primary hover:shadow-glow">
-            <div className="text-5xl font-black mb-3 bg-gradient-success bg-clip-text text-transparent">
-              $2.5M+
-            </div>
-            <div className="text-muted-foreground font-medium uppercase tracking-wide text-sm">
-              Total Profits Paid
-            </div>
-            <div className="mt-4 h-1 w-0 bg-gradient-success rounded-full group-hover:w-full transition-all duration-500"></div>
-          </div>
-          
-          <div className="group glass-card rounded-2xl p-8 border border-accent/20 transition-bounce hover:scale-105 hover:border-accent hover:shadow-glow-accent">
-            <div className="text-5xl font-black mb-3 bg-gradient-primary bg-clip-text text-transparent">
-              15,000+
-            </div>
-            <div className="text-muted-foreground font-medium uppercase tracking-wide text-sm">
-              Active Investors
-            </div>
-            <div className="mt-4 h-1 w-0 bg-gradient-accent rounded-full group-hover:w-full transition-all duration-500"></div>
-          </div>
-          
-          <div className="group glass-card rounded-2xl p-8 border border-warning/20 transition-bounce hover:scale-105 hover:border-warning hover:shadow-glow">
-            <div className="text-5xl font-black mb-3 bg-gradient-warning bg-clip-text text-transparent">
-              99.8%
-            </div>
-            <div className="text-muted-foreground font-medium uppercase tracking-wide text-sm">
-              Success Rate
-            </div>
-            <div className="mt-4 h-1 w-0 bg-gradient-warning rounded-full group-hover:w-full transition-all duration-500"></div>
-          </div>
+        {/* Premium Stats Tabs */}
+        <div className="max-w-2xl mx-auto">
+          <Tabs defaultValue="profits" className="w-full">
+            <TabsList className="glass-card w-full grid grid-cols-3 p-2 mb-8 shadow-premium">
+              <TabsTrigger 
+                value="profits" 
+                className="data-[state=active]:bg-gradient-success data-[state=active]:text-white transition-all duration-300"
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                Profits
+              </TabsTrigger>
+              <TabsTrigger 
+                value="investors" 
+                className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white transition-all duration-300"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Investors
+              </TabsTrigger>
+              <TabsTrigger 
+                value="success" 
+                className="data-[state=active]:bg-gradient-warning data-[state=active]:text-white transition-all duration-300"
+              >
+                <Award className="w-4 h-4 mr-2" />
+                Success
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="profits" className="mt-0">
+              <div className="glass-card rounded-2xl p-12 border border-success/30 shadow-premium animate-fade-in">
+                <div className="text-7xl font-black mb-4 bg-gradient-success bg-clip-text text-transparent">
+                  $2.5M+
+                </div>
+                <div className="text-muted-foreground font-medium uppercase tracking-wide text-base mb-4">
+                  Total Profits Paid
+                </div>
+                <div className="h-1 w-full bg-gradient-success rounded-full"></div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="investors" className="mt-0">
+              <div className="glass-card rounded-2xl p-12 border border-primary/30 shadow-premium animate-fade-in">
+                <div className="text-7xl font-black mb-4 bg-gradient-primary bg-clip-text text-transparent">
+                  15,000+
+                </div>
+                <div className="text-muted-foreground font-medium uppercase tracking-wide text-base mb-4">
+                  Active Investors
+                </div>
+                <div className="h-1 w-full bg-gradient-accent rounded-full"></div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="success" className="mt-0">
+              <div className="glass-card rounded-2xl p-12 border border-warning/30 shadow-premium animate-fade-in">
+                <div className="text-7xl font-black mb-4 bg-gradient-warning bg-clip-text text-transparent">
+                  99.8%
+                </div>
+                <div className="text-muted-foreground font-medium uppercase tracking-wide text-base mb-4">
+                  Success Rate
+                </div>
+                <div className="h-1 w-full bg-gradient-warning rounded-full"></div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
       
