@@ -104,66 +104,63 @@ export const HeroSection = () => {
         </div>
 
         
-        {/* Premium Stats Tabs */}
-        <div className="max-w-2xl mx-auto">
+        {/* Compact Sliding Stats Tabs */}
+        <div className="max-w-lg mx-auto">
           <Tabs defaultValue="profits" className="w-full">
-            <TabsList className="glass-card w-full grid grid-cols-3 p-2 mb-8 shadow-premium">
+            <TabsList className="glass-card inline-flex h-11 items-center justify-center rounded-full p-1 mb-6 shadow-premium">
               <TabsTrigger 
                 value="profits" 
-                className="data-[state=active]:bg-gradient-success data-[state=active]:text-white transition-all duration-300"
+                className="rounded-full px-6 py-2 text-sm font-medium data-[state=active]:bg-gradient-success data-[state=active]:text-white transition-all duration-300"
               >
-                <DollarSign className="w-4 h-4 mr-2" />
+                <DollarSign className="w-3.5 h-3.5 mr-1.5" />
                 Profits
               </TabsTrigger>
               <TabsTrigger 
                 value="investors" 
-                className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white transition-all duration-300"
+                className="rounded-full px-6 py-2 text-sm font-medium data-[state=active]:bg-gradient-primary data-[state=active]:text-white transition-all duration-300"
               >
-                <Users className="w-4 h-4 mr-2" />
+                <Users className="w-3.5 h-3.5 mr-1.5" />
                 Investors
               </TabsTrigger>
               <TabsTrigger 
                 value="success" 
-                className="data-[state=active]:bg-gradient-warning data-[state=active]:text-white transition-all duration-300"
+                className="rounded-full px-6 py-2 text-sm font-medium data-[state=active]:bg-gradient-warning data-[state=active]:text-white transition-all duration-300"
               >
-                <Award className="w-4 h-4 mr-2" />
+                <Award className="w-3.5 h-3.5 mr-1.5" />
                 Success
               </TabsTrigger>
             </TabsList>
             
             <TabsContent value="profits" className="mt-0">
-              <div className="glass-card rounded-2xl p-12 border border-success/30 shadow-premium animate-fade-in">
-                <div className="text-7xl font-black mb-4 bg-gradient-success bg-clip-text text-transparent">
+              <div className="glass-card rounded-xl p-8 border border-success/30 shadow-premium animate-fade-in">
+                <div className="text-5xl font-black mb-2 bg-gradient-success bg-clip-text text-transparent">
                   $2.5M+
                 </div>
-                <div className="text-muted-foreground font-medium uppercase tracking-wide text-base mb-4">
+                <div className="text-muted-foreground/80 font-medium text-sm uppercase tracking-wide">
                   Total Profits Paid
                 </div>
-                <div className="h-1 w-full bg-gradient-success rounded-full"></div>
               </div>
             </TabsContent>
             
             <TabsContent value="investors" className="mt-0">
-              <div className="glass-card rounded-2xl p-12 border border-primary/30 shadow-premium animate-fade-in">
-                <div className="text-7xl font-black mb-4 bg-gradient-primary bg-clip-text text-transparent">
+              <div className="glass-card rounded-xl p-8 border border-primary/30 shadow-premium animate-fade-in">
+                <div className="text-5xl font-black mb-2 bg-gradient-primary bg-clip-text text-transparent">
                   15,000+
                 </div>
-                <div className="text-muted-foreground font-medium uppercase tracking-wide text-base mb-4">
+                <div className="text-muted-foreground/80 font-medium text-sm uppercase tracking-wide">
                   Active Investors
                 </div>
-                <div className="h-1 w-full bg-gradient-accent rounded-full"></div>
               </div>
             </TabsContent>
             
             <TabsContent value="success" className="mt-0">
-              <div className="glass-card rounded-2xl p-12 border border-warning/30 shadow-premium animate-fade-in">
-                <div className="text-7xl font-black mb-4 bg-gradient-warning bg-clip-text text-transparent">
+              <div className="glass-card rounded-xl p-8 border border-warning/30 shadow-premium animate-fade-in">
+                <div className="text-5xl font-black mb-2 bg-gradient-warning bg-clip-text text-transparent">
                   99.8%
                 </div>
-                <div className="text-muted-foreground font-medium uppercase tracking-wide text-base mb-4">
+                <div className="text-muted-foreground/80 font-medium text-sm uppercase tracking-wide">
                   Success Rate
                 </div>
-                <div className="h-1 w-full bg-gradient-warning rounded-full"></div>
               </div>
             </TabsContent>
           </Tabs>
