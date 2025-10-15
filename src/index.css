@@ -6,62 +6,79 @@
 
 @layer base {
   :root {
-    /* Dark theme foundation */
-    --background: 215 28% 7%;
-    --foreground: 213 31% 91%;
+    /* Premium Dark Foundation */
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
 
-    --card: 215 25% 10%;
-    --card-foreground: 213 31% 91%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 215 25% 12%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Primary - Deep Professional Blue */
-    --primary: 217 91% 21%;
+    /* Primary - Rich Royal Blue */
+    --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
-    --primary-glow: 217 91% 35%;
+    --primary-glow: 221 83% 65%;
+    --primary-dark: 221 83% 35%;
 
-    /* Secondary - Darker Card Background */
-    --secondary: 215 25% 15%;
-    --secondary-foreground: 213 31% 91%;
+    /* Secondary - Premium Dark Surface */
+    --secondary: 222 47% 11%;
+    --secondary-foreground: 210 40% 98%;
 
     /* Muted elements */
-    --muted: 215 20% 18%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    /* Accent - Bright Blue for highlights */
-    --accent: 199 89% 48%;
+    /* Accent - Vibrant Cyan */
+    --accent: 189 94% 43%;
     --accent-foreground: 210 40% 98%;
+    --accent-glow: 189 94% 55%;
 
-    /* Success - Green for profits */
-    --success: 120 61% 50%;
-    --success-foreground: 120 100% 97%;
+    /* Success - Premium Green */
+    --success: 142 76% 36%;
+    --success-foreground: 142 100% 97%;
+    --success-glow: 142 76% 48%;
 
-    /* Warning - Gold for premium tiers */
-    --warning: 45 93% 58%;
-    --warning-foreground: 45 100% 7%;
+    /* Warning - Luxurious Gold */
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 100% 10%;
+    --warning-glow: 38 92% 62%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 215 20% 20%;
-    --input: 215 20% 18%;
-    --ring: 217 91% 35%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 221 83% 53%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 21%), hsl(217 91% 35%));
-    --gradient-secondary: linear-gradient(135deg, hsl(215 25% 10%), hsl(215 25% 15%));
-    --gradient-success: linear-gradient(135deg, hsl(120 61% 50%), hsl(140 61% 45%));
-    --gradient-hero: linear-gradient(135deg, hsl(215 28% 7%), hsl(217 91% 15%));
+    /* Premium Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(221 83% 65%) 100%);
+    --gradient-primary-dark: linear-gradient(135deg, hsl(221 83% 35%) 0%, hsl(221 83% 53%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(189 94% 43%) 0%, hsl(221 83% 53%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(142 76% 48%) 100%);
+    --gradient-warning: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(38 92% 62%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(222 47% 4%) 0%, hsl(221 83% 15%) 50%, hsl(222 47% 4%) 100%);
+    --gradient-mesh: radial-gradient(circle at 20% 50%, hsl(221 83% 15% / 0.5) 0%, transparent 50%),
+                     radial-gradient(circle at 80% 80%, hsl(189 94% 25% / 0.4) 0%, transparent 50%),
+                     radial-gradient(circle at 40% 20%, hsl(142 76% 20% / 0.3) 0%, transparent 50%);
     
-    /* Shadows */
-    --shadow-glow: 0 0 30px hsl(217 91% 35% / 0.3);
-    --shadow-card: 0 10px 30px hsl(215 28% 4% / 0.5);
+    /* Premium Shadows & Effects */
+    --shadow-glow: 0 0 40px hsl(221 83% 53% / 0.4);
+    --shadow-glow-accent: 0 0 40px hsl(189 94% 43% / 0.4);
+    --shadow-card: 0 20px 60px hsl(222 47% 2% / 0.6);
+    --shadow-elegant: 0 10px 30px -10px hsl(221 83% 53% / 0.5);
+    --shadow-premium: 0 25px 50px -12px hsl(222 47% 2% / 0.8);
+    
+    /* Glass Effects */
+    --glass-bg: hsl(222 47% 10% / 0.6);
+    --glass-border: hsl(210 40% 80% / 0.1);
     
     /* Animations */
-  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   
   /* Marquee animation */
   @keyframes marquee {
@@ -137,45 +154,84 @@
 }
 
 @layer components {
-  /* Investment Platform Components */
+  /* Premium Investment Platform Components */
   .gradient-primary {
     background: var(--gradient-primary);
   }
   
-  .gradient-secondary {
-    background: var(--gradient-secondary);
+  .gradient-primary-dark {
+    background: var(--gradient-primary-dark);
+  }
+  
+  .gradient-accent {
+    background: var(--gradient-accent);
   }
   
   .gradient-success {
     background: var(--gradient-success);
   }
   
+  .gradient-warning {
+    background: var(--gradient-warning);
+  }
+  
   .gradient-hero {
     background: var(--gradient-hero);
+  }
+  
+  .gradient-mesh {
+    background: var(--gradient-mesh);
+  }
+  
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
   
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
   
+  .shadow-glow-accent {
+    box-shadow: var(--shadow-glow-accent);
+  }
+  
   .shadow-card {
     box-shadow: var(--shadow-card);
+  }
+  
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .shadow-premium {
+    box-shadow: var(--shadow-premium);
   }
   
   .transition-smooth {
     transition: var(--transition-smooth);
   }
   
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+  
   .animate-float {
-    animation: float 3s ease-in-out infinite;
+    animation: float 4s ease-in-out infinite;
   }
   
   .animate-slide {
     animation: slide 20s linear infinite;
   }
   
+  .animate-glow {
+    animation: glow 3s ease-in-out infinite;
+  }
+  
   .investment-card {
-    @apply bg-card border border-border rounded-xl p-6 shadow-card transition-smooth hover:scale-105 hover:shadow-glow;
+    @apply glass-card rounded-2xl p-8 shadow-premium transition-smooth hover:scale-105 hover:shadow-glow;
   }
   
   .tier-card {
@@ -183,19 +239,29 @@
   }
   
   .cta-button {
-    @apply gradient-primary text-primary-foreground px-8 py-4 rounded-xl font-bold text-lg transition-smooth hover:scale-105 hover:shadow-glow;
+    @apply gradient-primary text-primary-foreground px-10 py-5 rounded-2xl font-bold text-lg transition-bounce hover:scale-105 shadow-elegant hover:shadow-glow;
   }
   
   .calculator-input {
-    @apply bg-secondary border border-border rounded-lg p-4 text-foreground placeholder:text-muted-foreground focus:border-accent focus:ring-2 focus:ring-accent/20;
+    @apply bg-secondary/50 border border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:border-accent focus:ring-2 focus:ring-accent/20 backdrop-blur-sm;
+  }
+  
+  .premium-badge {
+    @apply inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold shadow-elegant;
   }
 }
 
 @layer utilities {
-  /* Custom animations */
+  /* Premium Custom Animations */
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+    0%, 100% { 
+      transform: translateY(0px) rotate(0deg);
+      opacity: 0.6;
+    }
+    50% { 
+      transform: translateY(-20px) rotate(5deg);
+      opacity: 1;
+    }
   }
   
   @keyframes slide {
@@ -204,7 +270,23 @@
   }
   
   @keyframes glow {
-    0%, 100% { box-shadow: 0 0 20px hsl(217 91% 35% / 0.2); }
-    50% { box-shadow: 0 0 40px hsl(217 91% 35% / 0.5); }
+    0%, 100% { 
+      box-shadow: 0 0 30px hsl(221 83% 53% / 0.3),
+                  0 0 60px hsl(189 94% 43% / 0.2);
+    }
+    50% { 
+      box-shadow: 0 0 50px hsl(221 83% 53% / 0.6),
+                  0 0 100px hsl(189 94% 43% / 0.4);
+    }
+  }
+  
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
   }
 }
