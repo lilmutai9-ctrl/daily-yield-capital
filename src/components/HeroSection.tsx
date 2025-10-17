@@ -136,6 +136,7 @@ export const HeroSection = () => {
               <div className="glass-card rounded-xl p-8 border border-success/30 shadow-premium animate-fade-in">
                 <div className="text-5xl font-black mb-2 bg-gradient-success bg-clip-text text-transparent">
                   <AnimatedCounter 
+                    key="profits"
                     end={2.5} 
                     decimals={1} 
                     prefix="$" 
@@ -153,6 +154,7 @@ export const HeroSection = () => {
               <div className="glass-card rounded-xl p-8 border border-primary/30 shadow-premium animate-fade-in">
                 <div className="text-5xl font-black mb-2 bg-gradient-primary bg-clip-text text-transparent">
                   <AnimatedCounter 
+                    key="investors"
                     end={15000} 
                     separator={true}
                     suffix="+" 
@@ -169,6 +171,7 @@ export const HeroSection = () => {
               <div className="glass-card rounded-xl p-8 border border-warning/30 shadow-premium animate-fade-in">
                 <div className="text-5xl font-black mb-2 bg-gradient-warning bg-clip-text text-transparent">
                   <AnimatedCounter 
+                    key="success"
                     end={99.8} 
                     decimals={1} 
                     suffix="%" 
