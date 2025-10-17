@@ -134,7 +134,7 @@ export const HeroSection = () => {
             
             <TabsContent value="profits" className="mt-0">
               <div className="glass-card rounded-xl p-8 border border-success/30 shadow-premium animate-fade-in">
-                <div className="text-5xl font-black mb-2 bg-gradient-success bg-clip-text text-transparent">
+                <div className="text-5xl font-black mb-2">
                   <AnimatedCounter 
                     key="profits"
                     end={2.5} 
@@ -142,6 +142,7 @@ export const HeroSection = () => {
                     prefix="$" 
                     suffix="M+" 
                     duration={2500}
+                    className="bg-gradient-success bg-clip-text text-transparent"
                   />
                 </div>
                 <div className="text-muted-foreground/80 font-medium text-sm uppercase tracking-wide">
@@ -152,13 +153,14 @@ export const HeroSection = () => {
             
             <TabsContent value="investors" className="mt-0">
               <div className="glass-card rounded-xl p-8 border border-primary/30 shadow-premium animate-fade-in">
-                <div className="text-5xl font-black mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                <div className="text-5xl font-black mb-2">
                   <AnimatedCounter 
                     key="investors"
                     end={15000} 
                     separator={true}
                     suffix="+" 
                     duration={2500}
+                    className="bg-gradient-primary bg-clip-text text-transparent"
                   />
                 </div>
                 <div className="text-muted-foreground/80 font-medium text-sm uppercase tracking-wide">
@@ -169,13 +171,14 @@ export const HeroSection = () => {
             
             <TabsContent value="success" className="mt-0">
               <div className="glass-card rounded-xl p-8 border border-warning/30 shadow-premium animate-fade-in">
-                <div className="text-5xl font-black mb-2 bg-gradient-warning bg-clip-text text-transparent">
+                <div className="text-5xl font-black mb-2">
                   <AnimatedCounter 
                     key="success"
                     end={99.8} 
                     decimals={1} 
                     suffix="%" 
                     duration={2500}
+                    className="bg-gradient-warning bg-clip-text text-transparent"
                   />
                 </div>
                 <div className="text-muted-foreground/80 font-medium text-sm uppercase tracking-wide">
