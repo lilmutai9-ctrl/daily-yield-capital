@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Star, TrendingUp } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const testimonials = [
   {
@@ -78,54 +79,68 @@ export const Testimonials = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <Tabs defaultValue="0" className="max-w-4xl mx-auto">
+          <TabsList className="glass-card inline-flex h-12 items-center justify-center rounded-full p-1 mb-8 shadow-premium flex-wrap gap-1">
+            {testimonials.map((testimonial, index) => (
+              <TabsTrigger 
+                key={index}
+                value={index.toString()} 
+                className="rounded-full px-4 py-2 text-xs font-medium data-[state=active]:bg-gradient-primary data-[state=active]:text-white transition-all duration-300"
+              >
+                {testimonial.name.split(' ')[0]}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="bg-card/80 backdrop-blur-sm border border-border/50 hover:scale-105 transition-all duration-300 hover:shadow-xl">
-              <CardContent className="p-6">
-                {/* Header */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-accent to-success rounded-full flex items-center justify-center text-black font-bold">
-                    {testimonial.avatar}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-lg">{testimonial.name}</div>
-                    <div className="text-sm text-muted-foreground">{testimonial.location}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded-full">{testimonial.tier}</span>
-                      <div className="flex">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="h-3 w-3 fill-warning text-warning" />
-                        ))}
+            <TabsContent key={index} value={index.toString()} className="mt-0">
+              <Card className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-premium animate-fade-in">
+                <CardContent className="p-8">
+                  {/* Header */}
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-accent to-success rounded-full flex items-center justify-center text-white font-bold text-xl">
+                      {testimonial.avatar}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-xl">{testimonial.name}</div>
+                      <div className="text-sm text-muted-foreground">{testimonial.location}</div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs bg-accent/20 text-accent px-3 py-1 rounded-full font-semibold">{testimonial.tier}</span>
+                        <div className="flex">
+                          {[...Array(testimonial.rating)].map((_, i) => (
+                            <Star key={i} className="h-4 w-4 fill-warning text-warning" />
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Profit Stats */}
-                <div className="bg-secondary/50 rounded-lg p-4 mb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold text-success">{testimonial.profit}</div>
-                      <div className="text-sm text-muted-foreground">Total Profit</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-semibold">{testimonial.period}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3" />
-                        Active
+                  {/* Profit Stats */}
+                  <div className="bg-secondary/50 rounded-lg p-6 mb-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-3xl font-bold text-success">{testimonial.profit}</div>
+                        <div className="text-sm text-muted-foreground">Total Profit</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-semibold">{testimonial.period}</div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-1">
+                          <TrendingUp className="h-4 w-4" />
+                          Active
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Testimonial Text */}
-                <blockquote className="text-muted-foreground italic leading-relaxed">
-                  "{testimonial.text}"
-                </blockquote>
-              </CardContent>
-            </Card>
+                  {/* Testimonial Text */}
+                  <blockquote className="text-muted-foreground italic leading-relaxed text-lg">
+                    "{testimonial.text}"
+                  </blockquote>
+                </CardContent>
+              </Card>
+            </TabsContent>
           ))}
-        </div>
+        </Tabs>
 
         {/* Trust Indicators */}
         <div className="mt-16 text-center">
