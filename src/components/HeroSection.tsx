@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TrendingUp, Calculator, Shield, DollarSign, Users, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { AnimatedCounter } from '@/components/AnimatedCounter';
 import heroImage from '@/assets/hero-bg.jpg';
 
 export const HeroSection = () => {
@@ -134,7 +135,13 @@ export const HeroSection = () => {
             <TabsContent value="profits" className="mt-0">
               <div className="glass-card rounded-xl p-8 border border-success/30 shadow-premium animate-fade-in">
                 <div className="text-5xl font-black mb-2 bg-gradient-success bg-clip-text text-transparent">
-                  $2.5M+
+                  <AnimatedCounter 
+                    end={2.5} 
+                    decimals={1} 
+                    prefix="$" 
+                    suffix="M+" 
+                    duration={2500}
+                  />
                 </div>
                 <div className="text-muted-foreground/80 font-medium text-sm uppercase tracking-wide">
                   Total Profits Paid
@@ -145,7 +152,12 @@ export const HeroSection = () => {
             <TabsContent value="investors" className="mt-0">
               <div className="glass-card rounded-xl p-8 border border-primary/30 shadow-premium animate-fade-in">
                 <div className="text-5xl font-black mb-2 bg-gradient-primary bg-clip-text text-transparent">
-                  15,000+
+                  <AnimatedCounter 
+                    end={15000} 
+                    separator={true}
+                    suffix="+" 
+                    duration={2500}
+                  />
                 </div>
                 <div className="text-muted-foreground/80 font-medium text-sm uppercase tracking-wide">
                   Active Investors
@@ -156,7 +168,12 @@ export const HeroSection = () => {
             <TabsContent value="success" className="mt-0">
               <div className="glass-card rounded-xl p-8 border border-warning/30 shadow-premium animate-fade-in">
                 <div className="text-5xl font-black mb-2 bg-gradient-warning bg-clip-text text-transparent">
-                  99.8%
+                  <AnimatedCounter 
+                    end={99.8} 
+                    decimals={1} 
+                    suffix="%" 
+                    duration={2500}
+                  />
                 </div>
                 <div className="text-muted-foreground/80 font-medium text-sm uppercase tracking-wide">
                   Success Rate
