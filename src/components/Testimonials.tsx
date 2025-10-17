@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Star, TrendingUp } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -67,6 +67,19 @@ const testimonials = [
 ];
 
 export const Testimonials = () => {
+  const [activeTab, setActiveTab] = useState("0");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTab((current) => {
+        const nextIndex = (parseInt(current) + 1) % testimonials.length;
+        return nextIndex.toString();
+      });
+    }, 5000); // Change tab every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-background to-secondary/30">
       <div className="max-w-7xl mx-auto">
@@ -79,7 +92,7 @@ export const Testimonials = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="0" className="max-w-4xl mx-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-4xl mx-auto">
           <TabsList className="glass-card inline-flex h-12 items-center justify-center rounded-full p-1 mb-8 shadow-premium flex-wrap gap-1">
             {testimonials.map((testimonial, index) => (
               <TabsTrigger 
