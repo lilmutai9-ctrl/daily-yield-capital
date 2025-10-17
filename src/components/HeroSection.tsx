@@ -7,7 +7,7 @@ import heroImage from '@/assets/hero-bg.jpg';
 
 export const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[66vh] md:min-h-screen flex items-center justify-center overflow-hidden">
       {/* Premium Background Layers */}
       <div className="absolute inset-0">
         {/* Base Image */}
@@ -37,9 +37,9 @@ export const HeroSection = () => {
       </div>
       
       {/* Premium Content */}
-      <div className="relative z-10 text-center px-4 max-w-7xl mx-auto">
+      <div className="relative z-10 text-center px-4 max-w-7xl mx-auto py-8 md:py-0">
         {/* Premium Badge */}
-        <div className="mb-8 inline-block">
+        <div className="mb-4 md:mb-8 inline-block">
           <div className="premium-badge glass-card gradient-primary text-white animate-glow">
             <TrendingUp className="w-4 h-4 mr-2" />
             Trusted by 15,000+ Professional Investors
@@ -47,14 +47,14 @@ export const HeroSection = () => {
         </div>
         
         {/* Hero Headlines */}
-        <div className="mb-10 space-y-4">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
+        <div className="mb-6 md:mb-10 space-y-2 md:space-y-4">
+          <h1 className="text-2xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
             <span className="text-foreground">Professional</span>{' '}
             <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-shimmer bg-[length:200%_auto]">
               Investment Platform
             </span>
           </h1>
-          <h2 className="text-5xl md:text-6xl lg:text-8xl font-black bg-gradient-to-r from-warning via-success to-accent bg-clip-text text-transparent leading-tight">
+          <h2 className="text-4xl md:text-6xl lg:text-8xl font-black bg-gradient-to-r from-warning via-success to-accent bg-clip-text text-transparent leading-tight">
             Earn Daily Returns
           </h2>
           <div className="inline-flex items-center gap-3 text-xl md:text-2xl font-semibold">
@@ -66,7 +66,7 @@ export const HeroSection = () => {
           </div>
         </div>
         
-        <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground/90 mb-14 max-w-4xl mx-auto leading-relaxed">
+        <p className="text-base md:text-xl lg:text-2xl text-muted-foreground/90 mb-8 md:mb-14 max-w-4xl mx-auto leading-relaxed">
           Experience institutional-grade trading with{' '}
           <span className="text-success font-bold bg-success/10 px-2 py-1 rounded">up to 40% daily returns</span>,{' '}
           automated portfolio management, and{' '}
@@ -75,9 +75,9 @@ export const HeroSection = () => {
         </p>
         
         {/* Premium CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-5 justify-center items-center mb-20">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-5 justify-center items-center mb-8 md:mb-20">
           <Button 
-            className="group relative cta-button text-xl px-14 py-7 overflow-hidden"
+            className="group relative cta-button text-base md:text-xl px-8 md:px-14 py-5 md:py-7 overflow-hidden"
             onClick={() => window.location.href = '/auth'}
           >
             <span className="relative z-10 flex items-center">
@@ -88,7 +88,7 @@ export const HeroSection = () => {
           </Button>
           
           <Button 
-            className="group gradient-accent text-white border-0 px-14 py-7 text-xl rounded-2xl font-bold transition-bounce hover:scale-105 shadow-elegant hover:shadow-glow-accent"
+            className="group gradient-accent text-white border-0 px-8 md:px-14 py-5 md:py-7 text-base md:text-xl rounded-2xl font-bold transition-bounce hover:scale-105 shadow-elegant hover:shadow-glow-accent"
             onClick={() => window.location.href = '/trading-terminal'}
           >
             <Shield className="mr-3 h-6 w-6 transition-transform group-hover:scale-110" />
@@ -96,7 +96,7 @@ export const HeroSection = () => {
           </Button>
           
           <Button 
-            className="glass-card border-accent/50 hover:border-accent text-accent px-14 py-7 text-xl rounded-2xl font-bold transition-bounce hover:scale-105 hover:shadow-glow-accent"
+            className="glass-card border-accent/50 hover:border-accent text-accent px-8 md:px-14 py-5 md:py-7 text-base md:text-xl rounded-2xl font-bold transition-bounce hover:scale-105 hover:shadow-glow-accent"
             onClick={() => window.location.hash = 'calculator'}
           >
             <Calculator className="mr-3 h-6 w-6 transition-transform hover:rotate-12" />
